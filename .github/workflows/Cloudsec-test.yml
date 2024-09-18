@@ -22,18 +22,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
- #     - name: Checkout repository
- #       uses: actions/checkout@v4
- #     - name: Deploy to Github Pages
- #       uses: peaceiris/actions-gh-pages@v4
- #      with:
- #          github_token: ${{ secrets.CSN_TOKEN }}
- #          publish_dir: .
-      - name: GitHub Pages
-        uses: github/pages@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.CSN_TOKEN }}
-          path: /docs  # Specify the folder containing your index.html file
+           github_token: ${{ secrets.CSN_TOKEN }}
+           publish_dir: index.html
+   #   - name: GitHub Pages
+   #     uses: github/pages@v2
+   #     with:
+   #       github_token: ${{ secrets.CSN_TOKEN }}
+   #       path: /docs  # Specify the folder containing your index.html file
   dast:
     runs-on: ubuntu-latest
     needs: deploy
