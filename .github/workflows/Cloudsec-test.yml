@@ -3,7 +3,7 @@ name: Cloudsec-test
 on:
    push:
      branches:
-       - main
+       - stable
 
 permissions:
   checks: write
