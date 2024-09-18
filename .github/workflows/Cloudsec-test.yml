@@ -33,7 +33,7 @@ jobs:
 
       - name: Build the Docker image
         run: |
-              docker-compose --file=docker-compose.local.yml build
+              docker-compose --file=docker-compose.local.yml -d --build
               
 
       - name: Tag Docker image for app
