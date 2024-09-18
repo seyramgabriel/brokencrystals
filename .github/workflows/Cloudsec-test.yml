@@ -28,7 +28,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
            github_token: ${{ secrets.CSN_TOKEN }}
-           publish_dir: index.html
+           publish_dir: .
    #   - name: GitHub Pages
    #     uses: github/pages@v2
    #     with:
