@@ -37,6 +37,9 @@ jobs:
       - name: Build the Docker images
         run: docker-compose --file=docker-compose.local.yml up -d --build
 
+      - name: Checking for images built and pulled 
+        run: sudo docker images
+
       # Tagging the Docker images manually using docker tag command
       - name: Tag Docker images
         run: |
