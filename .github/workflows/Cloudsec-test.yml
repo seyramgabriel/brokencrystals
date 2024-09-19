@@ -16,9 +16,15 @@ jobs:
       - name: SAST Scan
         run: grep -r -e "password" -e "secret" -e "keys" .
       
-      #- name: Debug Docker Username
-      #  run: echo "Docker Hub username: ${{ secrets.DOCKERHUB_USERNAME }}"
-     
+     # - name: Debug Docker Username
+     #   run: echo "Docker Hub username: ${{ secrets.DOCKERHUB_USERNAME }}"
+
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
   
