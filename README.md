@@ -1,3 +1,186 @@
+
+## Creating a Jenkins Pipeline for SonarQube Scanning
+
+Launch an amazon linux t2.large ec2 instance and assign ssm role
+
+Get into the terminal via ssm on the console
+
+Move to root user, make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
+```
+sudo su
+```
+
+### Run to download install.sh file to install docker
+```
+wget -O install.sh https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/install.sh
+```
+
+### Add executable permission for install.sh file
+```
+chmod +x install.sh
+```
+
+## Run install.sh to install docker
+```
+./install.sh
+ ``` 
+   or 
+```
+bash install.sh
+```
+
+### Download docker-compose.yml files for jenkins and sonarqube containers
+```
+wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/docker-compose.yml
+```
+
+### Run Jenkins and SonarQube containers
+```
+docker-compose up -d
+```
+
+### Run this command to get the jenkins default password in the jenkins container
+```
+docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+### Access the Jenskins Server
+
+Access jenkins on the browser with http://ipaddress:9090 **eg** ```http://3.131.162.22:9090```
+
+_Install initial plugins and set your new user name and password:_
+
+* Go to "Manage jenkins", 
+* Got to "Plugins", 
+* Click on "Available Plugins" 
+* Type "SonarQube scanner" in the search bar, check it, 
+* Click "Install" on the top right corner
+* Scroll down and check the restart option.
+
+If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container
+docker start <container-id>  
+**eg** 
+```
+docker start 00d94c57784f
+```
+
+### Accessing the SonarQube Server
+
+* Access SonarQube on the browser with ```http://ipaddress:9000``` **eg** ```http://3.131.162.22:9000```
+* Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
+* Set your new password and click "Update"
+* Click on "create a local project"
+* Enter Project display name and Project Key, take note of these two as they will be very essential for the pipeline, in this project we used "Cloudsec" for both.
+* Enter Main branch name, make sure this is the name of your main branch in the repository you will be using. In this case it is "stable"
+* Click Next
+* Check "Use the global setting"
+* Scroll down and click "Create new project"
+* Click "Project" at the top menu and notice your project display name showing, in this case it was Cloudsec
+
+### Generating a token on the SonarQube Server to be used for Jenkins pipeline
+
+* click on "A" at the top right corner
+* Enter a name for your token **eg** ```Cloudsec-SonarQube-token```
+* Choose "Project Analysis token" under "Type" 
+* The project name **eg** "Cloudsec" will populate under "Project"
+* Let the 30 days expiry under "Expires in" remain
+* Click "Generate"
+* Copy and save the token securely
+
+
+Let's go back to the Jenkins server
+
+### Setting SonarQube environment and tool under System and Tool
+
+* Go to "Manage Jenkins"
+* Click on "System"
+* Scroll down to SonarQube Installations, check "Environmental variables" and enter a name of your choice under "Name" **eg** "SonarQube", copy and paste the SonarQuber server URL under "Server URL" **eg** ```http://3.131.162.22:9000/```
+* For "Server authentication token" click on the "+" symbol just before "Add" and select "Jenkins"
+* In the pop up window, select "secret text" under "Kind", copy and paste the generated SonarQube token under "Secret" and type something like "Secret jenkins token for sonarqube connection" under "Description", then click "Add"
+* Now that the credential has been created, click on the drop down under "Server authentication token" and select the description you entered in the above step.
+* Scroll down and click "Save"
+
+* Click on "Manage Jenkins"
+* Click on Tools
+* Scroll down to SonarQube Scaner and enter the name as entered under "System" for "SonarQube Installations", that is "SonarQube"
+* Click on "Save"
+
+Now a connection has been created between the Jenkins Server and the SonarQube Server
+
+### Create a Jenkins pipeline job
+
+* Click on "Dashboard" 
+* Click "Create a job"
+* Name your job, for **eg** "SonarQube-Cloudsec-job"
+* Click on "Pipeline"
+* Click "OK"
+* Scroll down and select "Pipeline script from SCM", select "Git" under "SCM", copy and paste your GitHub repositories URL **eg** ```https://GitHub.com/seyramgabriel/brokencrystals.git``` under "Repository URL"
+* You don't need a credential if your repository is a public, like this repository
+* Change the name under "Branch specifier" from "*/master" to "*/stable" as is the name of the branch we are using in this repository.
+* Scroll down and ensure the "Script path" is "Jenkinsfile"
+* The Jenkinsfile must be in the repository. The content of the file in this repository is:
+
+```
+node {
+  stage('SCM') {
+    checkout scm
+  }
+  stage('SonarQube Analysis') {
+    def scannerHome = tool 'SonarQube';
+    withSonarQubeEnv() {
+      sh "${scannerHome}/bin/sonar-scanner"
+    }
+  }
+}
+```
+
+**_You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools is  same as in the pipeline script for SonarQube (**eg** _**
+**_"def scannerHome = tool 'SonarQube';" the name in this case is 'SonarQube_**')
+
+Also check the content of "sonar-project.properties" file:
+
+```
+sonar.projectKey=Cloudsec
+```
+The key "Cloudsec" should be same as provided in the SonarQube project creation. 
+
+* Click "Save"
+
+Now a connection has been created between the GitHub repository and the Jenkins Server 
+
+
+Click on "Build Now"
+
+
+You can check the progress of the build by clicking on the drop down shown below and selecting "Console Output"
+A successful build shows a green tick in a circle.
+
+Now go to the SonarQube Server, Click on "Projects" and view the result of assessment as in the picture below:
+
+### GitHub Webhook
+
+You can automate the the build trigger by using a GitHub webhook:
+
+* Go to your GitHub repository
+* Click on "Settings" 
+* Click on "Webhook"
+* Click on "Edit" and enter your GitHub password
+* Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL ****eg**** ```http://3.131.162.22:9090/GitHub-webhook/```
+* Scroll down and click "Update webhook"
+
+
+On the Jenkins Server go to the pipeline and click on "Configure"
+Scroll down and tick "GitHub hook trigger for GITScm polling" under "Build Triggers"
+
+Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
+
+
+
+
+
+
+
+
 ## Description
 
 Broken Crystals is a benchmark application that uses modern technologies and implements a set of common security vulnerabilities.
