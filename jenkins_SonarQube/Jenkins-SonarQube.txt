@@ -1,0 +1,53 @@
+Launch an amazon linux t2.large ec2 instance and assign ssm role
+
+Get into the terminal via ssm on the console
+
+Move to root user, make sure you are in the usr directory, hence run "cd .." if you are in bin directory
+sudo su
+
+Run to download install.sh file to install docker
+wget -O install.sh https://raw.githubusercontent.com/cloudsecnetwork/sec-automation/main/resources/docker-compose-install.sh
+bash install.sh
+
+
+Add executable permission for install.sh file
+chmod +x install.sh
+
+Run install.sh to install docker
+./install.sh
+
+Download docker-compose.yml files for jenkins and sonarqube containers
+wget -O docker-compose.yml https://raw.githubusercontent.com/cloudsecnetwork/sec-automation/main/resources/jenkins-sonarqube-docker-compose.yml
+
+Run jenkins and sonarqube containers
+docker-compose up -d
+
+Run this command to get the jenkins default password in the jenkins container
+docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+Access jenkins on the browser with http://ipaddress:9090
+
+Go to manage jenkins, plugins, look for SonarQube scanner, install, choose restart option.
+
+If jenkins becomes inaccessible, go to the terminal and start the jenkins container
+
+Set SonarQube environment and tool under System and Tool, after going to "manage jenkins"
+
+Access SonarQube on the browser with http://ipaddress:9000
+
+Source repository.
+https://github.com/cloudsecnetwork/demo-app
+
+
+Enter a URL on this fashion "http://jenkins_ipaddress:9090/github-webhook/" as the Payload URL under settings and webhook if you want to use github webhook
+
+
+
+
+Note that jenkins Credential Provider and Credential work hand in hand. 
+
+
+You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools should be same as in the pipeline script for SonarQube (eg. 
+"def scannerHome = tool 'Sonar';" the name in this case is 'Sonar')
+
+projectKey is the name of the project on SonarQube, example Test, Webapp and so on.
