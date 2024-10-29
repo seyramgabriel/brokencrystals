@@ -44,7 +44,7 @@ docker-compose up -d
 docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-**10.** Access the Jenskins Server
+**10.** Access the Jenskins Server and install pluggins
 
 Access jenkins on the browser with ```http://ipaddress:9090``` **eg..** ```http://3.131.162.22:9090```
 
@@ -58,13 +58,14 @@ _Install initial plugins and set your new user name and password:_
 * Scroll down and check the restart option.
 
 If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container
-docker start <container-id>  
+docker start container-id 
+
 **eg.** 
 ```
 docker start 00d94c57784f
 ```
 
-**11.** Accessing the SonarQube Server
+**11.** Access the SonarQube Server
 
 * Access SonarQube on the browser with ```http://ipaddress:9000``` **eg.** ```http://3.131.162.22:9000```
 * Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
@@ -77,7 +78,7 @@ docker start 00d94c57784f
 * Scroll down and click "Create new project"
 * Click "Project" at the top menu and notice your project display name showing, in this case it was Cloudsec
 
-**12.** Generating a token on the SonarQube Server to be used for Jenkins pipeline
+**12.** Generate a token on the SonarQube Server to be used for Jenkins pipeline
 
 * click on "A" at the top right corner
 * Enter a name for your token **eg.** ```Cloudsec-SonarQube-token```
@@ -88,10 +89,9 @@ docker start 00d94c57784f
 * Copy and save the token securely
 
 
-Let's go back to the Jenkins server
-
-**13.** Setting SonarQube environment and tool under System and Tool
-
+**13.** Configure SonarQube Scanner in Jenkins
+ 
+ Go back to the Jenkins server
 * Go to "Manage Jenkins"
 * Click on "System"
 * Scroll down to SonarQube Installations, check "Environmental variables" and enter a name of your choice under "Name" **eg.** "SonarQube", copy and paste the SonarQuber server URL under "Server URL" **eg.** ```http://3.131.162.22:9000/```
@@ -180,7 +180,7 @@ You can automate the the build trigger by using a GitHub webhook:
 ![Screenshot (96)](https://github.com/user-attachments/assets/82c1b083-2a9a-4c69-abbc-ae2195a8d995)
 
 * On the Jenkins Server go to the pipeline and click on "Configure"
-Scroll down and tick "GitHub hook trigger for GITScm polling" under "Build Triggers"
+* Scroll down and tick "GitHub hook trigger for GITSCM polling" under "Build Triggers"
 
 Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
 
