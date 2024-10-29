@@ -46,7 +46,7 @@ docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 **10.** Access the Jenskins Server
 
-Access jenkins on the browser with ```http://ipaddress:9090``` **eg** ```http://3.131.162.22:9090```
+Access jenkins on the browser with ```http://ipaddress:9090``` **eg..** ```http://3.131.162.22:9090```
 
 _Install initial plugins and set your new user name and password:_
 
@@ -59,14 +59,14 @@ _Install initial plugins and set your new user name and password:_
 
 If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container
 docker start <container-id>  
-**eg** 
+**eg.** 
 ```
 docker start 00d94c57784f
 ```
 
 **11.** Accessing the SonarQube Server
 
-* Access SonarQube on the browser with ```http://ipaddress:9000``` **eg** ```http://3.131.162.22:9000```
+* Access SonarQube on the browser with ```http://ipaddress:9000``` **eg.** ```http://3.131.162.22:9000```
 * Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
 * Set your new password and click "Update"
 * Click on "create a local project"
@@ -80,9 +80,9 @@ docker start 00d94c57784f
 **12.** Generating a token on the SonarQube Server to be used for Jenkins pipeline
 
 * click on "A" at the top right corner
-* Enter a name for your token **eg** ```Cloudsec-SonarQube-token```
+* Enter a name for your token **eg.** ```Cloudsec-SonarQube-token```
 * Choose "Project Analysis token" under "Type" 
-* The project name **eg** "Cloudsec" will populate under "Project"
+* The project name **eg.** "Cloudsec" will populate under "Project"
 * Let the 30 days expiry under "Expires in" remain
 * Click "Generate"
 * Copy and save the token securely
@@ -94,7 +94,7 @@ Let's go back to the Jenkins server
 
 * Go to "Manage Jenkins"
 * Click on "System"
-* Scroll down to SonarQube Installations, check "Environmental variables" and enter a name of your choice under "Name" **eg** "SonarQube", copy and paste the SonarQuber server URL under "Server URL" **eg** ```http://3.131.162.22:9000/```
+* Scroll down to SonarQube Installations, check "Environmental variables" and enter a name of your choice under "Name" **eg.** "SonarQube", copy and paste the SonarQuber server URL under "Server URL" **eg.** ```http://3.131.162.22:9000/```
 * For "Server authentication token" click on the "+" symbol just before "Add" and select "Jenkins"
 * In the pop up window, select "secret text" under "Kind", copy and paste the generated SonarQube token under "Secret" and type something like "Secret jenkins token for sonarqube connection" under "Description", then click "Add"
 * Now that the credential has been created, click on the drop down under "Server authentication token" and select the description you entered in the above step.
@@ -111,10 +111,10 @@ Now a connection has been created between the Jenkins Server and the SonarQube S
 
 * Click on "Dashboard" 
 * Click "Create a job"
-* Name your job, for **eg** "SonarQube-Cloudsec-job"
+* Name your job, for **eg.** "SonarQube-Cloudsec-job"
 * Click on "Pipeline"
 * Click "OK"
-* Scroll down and select "Pipeline script from SCM", select "Git" under "SCM", copy and paste your GitHub repositories URL **eg** ```https://GitHub.com/seyramgabriel/brokencrystals.git``` under "Repository URL"
+* Scroll down and select "Pipeline script from SCM", select "Git" under "SCM", copy and paste your GitHub repositories URL **eg.** ```https://GitHub.com/seyramgabriel/brokencrystals.git``` under "Repository URL"
 * You don't need a credential if your repository is a public, like this repository
 * Change the name under "Branch specifier" from "*/master" to "*/stable" as is the name of the branch we are using in this repository.
 * Scroll down and ensure the "Script path" is "Jenkinsfile"
@@ -134,7 +134,7 @@ node {
 }
 ```
 
-**_You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools is  same as in the pipeline script for SonarQube (eg."def scannerHome = tool 'SonarQube';" the name in this case is SonarQube')_**
+**_You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools is  same as in the pipeline script for SonarQube (**eg..**"def scannerHome = tool 'SonarQube';" the name in this case is SonarQube')_**
 
 Also check the content of "sonar-project.properties" file:
 
@@ -164,7 +164,7 @@ You can automate the the build trigger by using a GitHub webhook:
 * Click on "Settings" 
 * Click on "Webhook"
 * Click on "Edit" and enter your GitHub password
-* Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL ****eg**** ```http://3.131.162.22:9090/GitHub-webhook/```
+* Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL ****eg.**** ```http://3.131.162.22:9090/GitHub-webhook/```
 * Scroll down and click "Update webhook"
 * On the Jenkins Server go to the pipeline and click on "Configure"
 Scroll down and tick "GitHub hook trigger for GITScm polling" under "Build Triggers"
@@ -212,7 +212,7 @@ docker-compose --file=docker-compose.local.yml up -d
 docker-compose --file=docker-compose.local.yml up -d --build
 ```
 
-## Running tests by [SecTester](https://github.com/NeuraLegion/sectester-js/)
+## Running tests by [SecTester](https://github.com/NeuraLeg.ion/sectester-js/)
 
 In the path [`./test`](./test) you can find tests to run with Jest.
 
@@ -234,7 +234,7 @@ Finally, you can start tests with SecTester against these endpoints as follows:
 npm run test:e2e
 ```
 
-Full configuration & usage examples can be found in our [demo project](https://github.com/NeuraLegion/sectester-js-demo-broken-crystals);
+Full configuration & usage examples can be found in our [demo project](https://github.com/NeuraLeg.ion/sectester-js-demo-broken-crystals);
 
 ## Vulnerabilities Overview
 
@@ -283,13 +283,13 @@ Full configuration & usage examples can be found in our [demo project](https://g
 
 - **CSS Injection** - The login page is vulnerable to CSS Injections through a URL parameter: https://brokencrystals.com/userlogin?logobgcolor=transparent.
 
-- **HTTP Method fuzzer** - The server supports uploading, deletion, and getting the content of a file via /put.raw addition to the URL. The actual implementation using a regular upload endpoint of the server and the /put.raw endpoint is mapped in Nginx.
+- **HTTP Method fuzzer** - The server supports uploading, deletion, and getting the content of a file via /put.raw addition to the URL. The actual implementation using a reg.ular upload endpoint of the server and the /put.raw endpoint is mapped in Nginx.
 
 - **LDAP Injection** - The login request returns an LDAP query for the user's profile, which can be used as a query parameter in /api/users/ldap _query_ query parameter. The returned query can be modified to search for other users. If the structure of the LDAP query is changed, a detailed LDAP error will be returned (with LDAP server information and hierarchy).
 
 - **Local File Inclusion (LFI)** - The /api/files endpoint returns any file on the server from the path that is provided in the _path_ param. The UI uses this endpoint to load crystal images on the landing page.
 
-- **Mass Assignment** - You can add to user admin privileges upon creating user or updating userdata. When you are creating a new user /api/users/basic you can use additional hidden field in body request { ... "isAdmin" : true }. If you are trying to edit userdata with PUT request /api/users/one/{email}/info you can add this additional field mentioned above. For checking admin permissions there is one more endpoint: /api/users/one/{email}/adminpermission.
+- **Mass Assignment** - You can add to user admin privileg.es upon creating user or updating userdata. When you are creating a new user /api/users/basic you can use additional hidden field in body request { ... "isAdmin" : true }. If you are trying to edit userdata with PUT request /api/users/one/{email}/info you can add this additional field mentioned above. For checking admin permissions there is one more endpoint: /api/users/one/{email}/adminpermission.
 
 - **Open Database** - The index.html file includes a link to manifest URL, which returns the server's configuration, including a DB connection string.
 
@@ -343,7 +343,7 @@ Full configuration & usage examples can be found in our [demo project](https://g
      its parameters into an object. This means that a requests like `/marketplace?__proto__[TestKey]=TestValue` will lead to a creation of `Object.TestKey`.
      One can test if an attack was successful by viewing the new property created in the console.
      This EP also supports prototype pollution based DOM XSS using a payload such as `__proto__[prototypePollutionDomXss]=data:,alert(1);`.
-     The "legitimate" code tries to use the `prototypePollutionDomXss` parameter as a source for a script tag, so if the exploit is not used via this key it won't work.
+     The "leg.itimate" code tries to use the `prototypePollutionDomXss` parameter as a source for a script tag, so if the exploit is not used via this key it won't work.
   2. The EP GET `/api/email/sendSupportEmail` represents the server side vulnerability, by having a rookie URI parsing mistake (similar to the client side).
      This means that a request such as `/api/email/sendSupportEmail?name=Bob%20Dylan&__proto__[status]=222&to=username%40email.com&subject=Help%20Request&content=Help%20me..`
      will lead to a creation of `uriParams.status`, which is a parameter used in the final JSON response.
@@ -351,7 +351,7 @@ Full configuration & usage examples can be found in our [demo project](https://g
 - **Date Manipulation** - The `/api/products?date_from={df}&date_to={dt}` endpoint fetches all products that were created between the selected dates. There is no limit on the range of dates and when a user tries to query a range larger than 2 years querying takes a significant amount of time. This EP is used by the frontend in the `/marketplace` page.
 
 - **Email Injection** - The `/api/email/sendSupportEmail` is vulnerable to email injection by supplying tempered recipients.
-  To exploit the EP you can dispatch a request as such `/api/email/sendSupportEmail?name=Bob&to=username%40email.com%0aCc:%20bob@domain.com&subject=Help%20Request&content=I%20would%20like%20to%20request%20help%20regarding`.
+  To exploit the EP you can dispatch a request as such `/api/email/sendSupportEmail?name=Bob&to=username%40email.com%0aCc:%20bob@domain.com&subject=Help%20Request&content=I%20would%20like%20to%20request%20help%20reg.arding`.
   This will lead to the sending of a mail to both `username@email.com` and `bob@domain.com` (as the Cc).
   Note: This EP is also vulnerable to `Server side prototype pollution`, as mentioned in this README.
 
