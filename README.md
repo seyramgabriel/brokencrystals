@@ -10,7 +10,7 @@
 sudo su
 ```
 
-4. ### Run to download install.sh file to install docker
+4. Run to download install.sh file to install docker
 ```
 wget -O install.sh https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/install.sh
 ```
@@ -39,12 +39,12 @@ wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/broke
 docker-compose up -d
 ```
 
-### Run this command to get the jenkins default password in the jenkins container
+9. ### Run this command to get the jenkins default password in the jenkins container
 ```
 docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-### Access the Jenskins Server
+10. ### Access the Jenskins Server
 
 Access jenkins on the browser with http://ipaddress:9090 **eg** ```http://3.131.162.22:9090```
 
@@ -64,7 +64,7 @@ docker start <container-id>
 docker start 00d94c57784f
 ```
 
-### Accessing the SonarQube Server
+11. ### Accessing the SonarQube Server
 
 * Access SonarQube on the browser with ```http://ipaddress:9000``` **eg** ```http://3.131.162.22:9000```
 * Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
@@ -77,7 +77,7 @@ docker start 00d94c57784f
 * Scroll down and click "Create new project"
 * Click "Project" at the top menu and notice your project display name showing, in this case it was Cloudsec
 
-### Generating a token on the SonarQube Server to be used for Jenkins pipeline
+12. ### Generating a token on the SonarQube Server to be used for Jenkins pipeline
 
 * click on "A" at the top right corner
 * Enter a name for your token **eg** ```Cloudsec-SonarQube-token```
@@ -90,7 +90,7 @@ docker start 00d94c57784f
 
 Let's go back to the Jenkins server
 
-### Setting SonarQube environment and tool under System and Tool
+13. ### Setting SonarQube environment and tool under System and Tool
 
 * Go to "Manage Jenkins"
 * Click on "System"
@@ -107,7 +107,7 @@ Let's go back to the Jenkins server
 
 Now a connection has been created between the Jenkins Server and the SonarQube Server
 
-### Create a Jenkins pipeline job
+14. ### Create a Jenkins pipeline job
 
 * Click on "Dashboard" 
 * Click "Create a job"
