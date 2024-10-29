@@ -134,8 +134,7 @@ node {
 }
 ```
 
-**_You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools is  same as in the pipeline script for SonarQube (**eg** _**
-**_"def scannerHome = tool 'SonarQube';" the name in this case is 'SonarQube_**')
+**_You must always ensure that the name of the tool you gave under SonarQube Scanner on jenkins/tools is  same as in the pipeline script for SonarQube (eg."def scannerHome = tool 'SonarQube';" the name in this case is SonarQube')_**
 
 Also check the content of "sonar-project.properties" file:
 
