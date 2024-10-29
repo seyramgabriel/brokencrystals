@@ -15,12 +15,12 @@ sudo su
 wget -O install.sh https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/install.sh
 ```
 
-5. ### Add executable permission for install.sh file
+5. Add executable permission for install.sh file
 ```
 chmod +x install.sh
 ```
 
-6. ## Run install.sh to install docker
+6. Run install.sh to install docker
 ```
 ./install.sh
  ``` 
@@ -29,22 +29,22 @@ chmod +x install.sh
 bash install.sh
 ```
 
-7. ### Download docker-compose.yml files for jenkins and sonarqube containers
+7. Download docker-compose.yml files for jenkins and sonarqube containers
 ```
 wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/docker-compose.yml
 ```
 
-8. ### Run Jenkins and SonarQube containers
+8. Run Jenkins and SonarQube containers
 ```
 docker-compose up -d
 ```
 
-9. ### Run this command to get the jenkins default password in the jenkins container
+9. Run this command to get the jenkins default password in the jenkins container
 ```
 docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-10. ### Access the Jenskins Server
+10. Access the Jenskins Server
 
 Access jenkins on the browser with http://ipaddress:9090 **eg** ```http://3.131.162.22:9090```
 
@@ -64,7 +64,7 @@ docker start <container-id>
 docker start 00d94c57784f
 ```
 
-11. ### Accessing the SonarQube Server
+11. Accessing the SonarQube Server
 
 * Access SonarQube on the browser with ```http://ipaddress:9000``` **eg** ```http://3.131.162.22:9000```
 * Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
@@ -77,7 +77,7 @@ docker start 00d94c57784f
 * Scroll down and click "Create new project"
 * Click "Project" at the top menu and notice your project display name showing, in this case it was Cloudsec
 
-12. ### Generating a token on the SonarQube Server to be used for Jenkins pipeline
+12. Generating a token on the SonarQube Server to be used for Jenkins pipeline
 
 * click on "A" at the top right corner
 * Enter a name for your token **eg** ```Cloudsec-SonarQube-token```
@@ -90,7 +90,7 @@ docker start 00d94c57784f
 
 Let's go back to the Jenkins server
 
-13. ### Setting SonarQube environment and tool under System and Tool
+13. Setting SonarQube environment and tool under System and Tool
 
 * Go to "Manage Jenkins"
 * Click on "System"
@@ -107,7 +107,7 @@ Let's go back to the Jenkins server
 
 Now a connection has been created between the Jenkins Server and the SonarQube Server
 
-14. ### Create a Jenkins pipeline job
+14. Create a Jenkins pipeline job
 
 * Click on "Dashboard" 
 * Click "Create a job"
@@ -167,9 +167,7 @@ You can automate the the build trigger by using a GitHub webhook:
 * Click on "Edit" and enter your GitHub password
 * Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL ****eg**** ```http://3.131.162.22:9090/GitHub-webhook/```
 * Scroll down and click "Update webhook"
-
-
-On the Jenkins Server go to the pipeline and click on "Configure"
+* On the Jenkins Server go to the pipeline and click on "Configure"
 Scroll down and tick "GitHub hook trigger for GITScm polling" under "Build Triggers"
 
 Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
