@@ -148,13 +148,20 @@ The key "Cloudsec" should be same as provided in the SonarQube project creation.
 Now a connection has been created between the GitHub repository and the Jenkins Server 
 
 
-Click on "Build Now"
+* Click on "Build Now" to trigger the pipeline
 
 
 You can check the progress of the build by clicking on the drop down shown below and selecting "Console Output"
+
+![Screenshot (91)](https://github.com/user-attachments/assets/fb12171e-fc14-4301-bc54-c544f00fb4b6)
+
 A successful build shows a green tick in a circle.
 
+![Screenshot (92)](https://github.com/user-attachments/assets/1c0348e8-0bd0-46ed-b9eb-a5ed18e10e81)
+
 Now go to the SonarQube Server, Click on "Projects" and view the result of assessment as in the picture below:
+
+![Screenshot (94)](https://github.com/user-attachments/assets/f2dd4e2f-512d-40ea-a11e-647c8db60e6d)
 
 ### GitHub Webhook
 
@@ -165,7 +172,13 @@ You can automate the the build trigger by using a GitHub webhook:
 * Click on "Webhook"
 * Click on "Edit" and enter your GitHub password
 * Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL ****eg.**** ```http://3.131.162.22:9090/GitHub-webhook/```
+
+![Screenshot (95)](https://github.com/user-attachments/assets/d1bd8af8-d71d-4a1d-bd93-f7bbf958f0ad)
+
 * Scroll down and click "Update webhook"
+
+![Screenshot (96)](https://github.com/user-attachments/assets/82c1b083-2a9a-4c69-abbc-ae2195a8d995)
+
 * On the Jenkins Server go to the pipeline and click on "Configure"
 Scroll down and tick "GitHub hook trigger for GITScm polling" under "Build Triggers"
 
