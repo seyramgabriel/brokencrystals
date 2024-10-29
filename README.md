@@ -1,26 +1,26 @@
 
 ## Creating a Jenkins Pipeline for SonarQube Scanning
 
-Launch an amazon linux t2.large ec2 instance and assign ssm role
+1. Launch an amazon linux t2.large ec2 instance and assign ssm role
 
-Get into the terminal via ssm on the console
+2. Get into the terminal via ssm on the console
 
-Move to root user, make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
+3. Move to root user, make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
 ```
 sudo su
 ```
 
-### Run to download install.sh file to install docker
+4. ### Run to download install.sh file to install docker
 ```
 wget -O install.sh https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/install.sh
 ```
 
-### Add executable permission for install.sh file
+5. ### Add executable permission for install.sh file
 ```
 chmod +x install.sh
 ```
 
-## Run install.sh to install docker
+6. ## Run install.sh to install docker
 ```
 ./install.sh
  ``` 
@@ -29,12 +29,12 @@ chmod +x install.sh
 bash install.sh
 ```
 
-### Download docker-compose.yml files for jenkins and sonarqube containers
+7. ### Download docker-compose.yml files for jenkins and sonarqube containers
 ```
 wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/docker-compose.yml
 ```
 
-### Run Jenkins and SonarQube containers
+8. ### Run Jenkins and SonarQube containers
 ```
 docker-compose up -d
 ```
