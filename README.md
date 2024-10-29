@@ -46,7 +46,7 @@ docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 **10.** Access the Jenskins Server
 
-Access jenkins on the browser with http://ipaddress:9090 **eg** ```http://3.131.162.22:9090```
+Access jenkins on the browser with ```http://ipaddress:9090``` **eg** ```http://3.131.162.22:9090```
 
 _Install initial plugins and set your new user name and password:_
 
