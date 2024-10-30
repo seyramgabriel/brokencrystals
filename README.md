@@ -25,7 +25,9 @@ chmod +x install.sh
 ```
 ./install.sh
  ``` 
-        or 
+
+  or 
+
 ```
 bash install.sh
 ```
