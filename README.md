@@ -5,10 +5,11 @@
 
 **2.** Get into the terminal via ssm on the console
 
-**3**. Move to root user, make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
+**3** Run to move to root user
 ```
 sudo su
 ```
+Make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
 
 **4.** Run to download install.sh file to install docker
 ```
@@ -24,12 +25,12 @@ chmod +x install.sh
 ```
 ./install.sh
  ``` 
-   or 
+        or 
 ```
 bash install.sh
 ```
 
-**7.** Download docker-compose.yml files for jenkins and sonarqube containers
+**7.** Download docker-compose.yml files for Jenkins and SonarQube containers
 ```
 wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/docker-compose.yml
 ```
@@ -39,7 +40,7 @@ wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/broke
 docker-compose up -d
 ```
 
-**9.** Run this command to get the jenkins default password in the jenkins container
+**9.** Run this command to get the Jenkins default password in the Jenkins container
 ```
 docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
@@ -51,14 +52,13 @@ Access jenkins on the browser with ```http://ipaddress:9090``` **eg..** ```http:
 _Install initial plugins and set your new user name and password:_
 
 * Go to "Manage jenkins", 
-* Got to "Plugins", 
+* Go to "Plugins", 
 * Click on "Available Plugins" 
 * Type "SonarQube scanner" in the search bar, check it, 
 * Click "Install" on the top right corner
 * Scroll down and check the restart option.
 
-If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container
-docker start container-id 
+If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container with this command ```docker start container-id```
 
 **eg.** 
 ```
@@ -91,7 +91,7 @@ docker start 00d94c57784f
 
 **13.** Configure SonarQube Scanner in Jenkins
  
- Go back to the Jenkins server
+* Go back to the Jenkins server
 * Go to "Manage Jenkins"
 * Click on "System"
 * Scroll down to SonarQube Installations, check "Environmental variables" and enter a name of your choice under "Name" **eg.** "SonarQube", copy and paste the SonarQuber server URL under "Server URL" **eg.** ```http://3.131.162.22:9000/```
@@ -114,7 +114,7 @@ Now a connection has been created between the Jenkins Server and the SonarQube S
 * Name your job, for **eg.** "SonarQube-Cloudsec-job"
 * Click on "Pipeline"
 * Click "OK"
-* Scroll down and select "Pipeline script from SCM", select "Git" under "SCM", copy and paste your GitHub repositories URL **eg.** ```https://GitHub.com/seyramgabriel/brokencrystals.git``` under "Repository URL"
+* Scroll down and select "Pipeline script from SCM", select "Git" under "SCM", copy and paste your GitHub repositories URL **eg.** ```https://github.com/seyramgabriel/brokencrystals.git``` under "Repository URL"
 * You don't need a credential if your repository is a public, like this repository
 * Change the name under "Branch specifier" from "*/master" to "*/stable" as is the name of the branch we are using in this repository.
 * Scroll down and ensure the "Script path" is "Jenkinsfile"
@@ -171,7 +171,7 @@ You can automate the the build trigger by using a GitHub webhook:
 * Click on "Settings" 
 * Click on "Webhook"
 * Click on "Edit" and enter your GitHub password
-* Enter a URL on this fashion ```http://jenkins_ipaddress:9090/GitHub-webhook/``` as the Payload URL **eg.** ```http://3.131.162.22:9090/GitHub-webhook/```
+* Enter a URL on this fashion ```http://jenkins_ipaddress:9090/github-webhook/``` as the Payload URL **eg.** ```http://3.131.162.22:9090/github-webhook/```
 
 ![Screenshot (95)](https://github.com/user-attachments/assets/d1bd8af8-d71d-4a1d-bd93-f7bbf958f0ad)
 
