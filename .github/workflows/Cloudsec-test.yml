@@ -58,9 +58,9 @@ jobs:
                 
       - name: Push Docker images
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-${{ github.sha }}
           
 
   deploy:
