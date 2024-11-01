@@ -14,23 +14,102 @@ spec:
     spec:
       containers:
         - name: nodejs
-          image: IMAGE_NODEJS
+          image: seyramgabriel/brokencrystals:nodejs-VERSION_TAG   # Replace IMAGE_NODEJS with the actual image
           ports:
             - containerPort: 3000
+          env:
+            - name: URL
+              value: "https://brokencrystals.com"
+            - name: DATABASE_HOST
+              value: "localhost"  # Since PostgreSQL is in the same pod
+            - name: DATABASE_SCHEMA
+              value: "bc"
+            - name: DATABASE_USER
+              value: "bc"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: database-password
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_DEBUG
+              value: "true"
+            - name: AWS_BUCKET
+              value: "https://neuralegion-open-bucket.s3.amazonaws.com"
+            - name: GOOGLE_MAPS_API
+              valueFrom:
+                secretKeyRef:
+                  name: google-maps-api-key
+                  key: api-key
+            - name: JWT_PRIVATE_KEY_LOCATION
+              value: "config/keys/jwtRS256.key"
+            - name: JWT_PUBLIC_KEY_LOCATION
+              value: "config/keys/jwtRS256.key.pub.pem"
+            - name: JWT_SECRET_KEY
+              value: "1234"
+            - name: JWK_PRIVATE_KEY_LOCATION
+              value: "config/keys/jwk.key.pem"
+            - name: JWK_PUBLIC_KEY_LOCATION
+              value: "config/keys/jwk.pub.key.pem"
+            - name: JWK_PUBLIC_JSON
+              value: "config/keys/jwk.pub.json"
+            - name: JKU_URL
+              value: "https://raw.githubusercontent.com/NeuraLegion/brokencrystals/development/config/keys/jku.json"
+            - name: X5U_URL
+              value: "https://raw.githubusercontent.com/NeuraLegion/brokencrystals/development/config/keys/x509.crt"
+            - name: KEYCLOAK_SERVER_URI
+              value: "https://auth.qa.brokencrystals.com/auth"
+            - name: KEYCLOAK_REALM
+              value: "brokencrystals"
+            - name: KEYCLOAK_ADMIN_CLIENT_ID
+              value: "admin-cli"
+            - name: KEYCLOAK_ADMIN_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-secret
+                  key: client-secret
+            - name: KEYCLOAK_PUBLIC_CLIENT_ID
+              value: "brokencrystals-client"
+            - name: KEYCLOAK_PUBLIC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-public-client-secret
+                  key: client-secret
+            - name: BRIGHT_TOKEN
+              value: ""
+            - name: BRIGHT_CLUSTER
+              value: "app.brightsec.com"
+            - name: SEC_TESTER_TARGET
+              value: "http://localhost:3000"
+            - name: CHAT_API_URL
+              value: "https://api-inference.huggingface.co/v1/chat/completions"
+            - name: CHAT_API_MODEL
+              value: "meta-llama/Meta-Llama-3-8B-Instruct"
+            - name: CHAT_API_MAX_TOKENS
+              value: "1000"
+            - name: CHAT_API_TOKEN
+              value: ""
         - name: postgres
-          image: IMAGE_POSTGRES
+          image: seyramgabriel/brokencrystals:postgres-VERSION_TAG   # Replace IMAGE_POSTGRES with the actual image
           ports:
             - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "bc"
+            - name: POSTGRES_USER
+              value: "bc"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: database-password
         - name: mailcatcher
-          image: IMAGE_MAILCATCHER
+          image: seyramgabriel/brokencrystals:mailcatcher-VERSION_TAG   # Replace IMAGE_MAILCATCHER with the actual image
           ports:
             - containerPort: 1080
-            
 
 ---
-
-# Service for the deployment
-# This exposes the deployment's Pods to the outside world via a Service object.
 apiVersion: v1
 kind: Service
 metadata:
@@ -42,7 +121,7 @@ spec:
   selector:
     app: brokencrystals
   ports:
-    - port: 80               # Exposed port
-      targetPort: 3000       # The port your application is listening on (e.g., Node.js app)
+    - port: 80                # External port
+      targetPort: 3000        # Internal Node.js port
       protocol: TCP
       name: http
