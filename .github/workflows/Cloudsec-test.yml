@@ -52,15 +52,15 @@ jobs:
       # Tagging the Docker images manually using docker tag command
       - name: Tag Docker images
         run: |
-          docker tag brokencrystals_nodejs:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-latest
-          docker tag postgres:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-latest
-          docker tag sj26/mailcatcher:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-latest
+          docker tag brokencrystals_nodejs:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-${{ github.sha }}
+          docker tag postgres:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-${{ github.sha }}
+          docker tag sj26/mailcatcher:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-${{ github.sha }}
                 
       - name: Push Docker images
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-${{ github.sha }}
           
 
   deploy:
