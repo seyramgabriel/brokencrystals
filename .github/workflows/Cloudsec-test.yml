@@ -32,7 +32,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-
       - name: build server
         run: npm ci && npm run build
 
@@ -102,7 +101,7 @@ jobs:
       run: kubectl apply -f k8s/  --validate=false # Path to your Kubernetes config files
   
     - name: Verify deployment
-      run: kubectl rollout status deployment/githubactions-demo  # Change to your deployment resource name
+      run: kubectl rollout status deployment/nodejs  # Change to your deployment resource name
 
 
   dast:
