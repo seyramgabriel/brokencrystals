@@ -31,6 +31,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
+
+
+      - name: build server
+        run: npm ci && npm run build
+
+      - name: build client
+        run: npm ci --prefix client && npm run build --prefix client
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
