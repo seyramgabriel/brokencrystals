@@ -235,10 +235,12 @@ Follow the steps below to create an AWS Cluster:
 ### How to Setup an EKS Cluster using AWS CLI
 
 1.   Install and Configure the AWS CLI
+
 Ensure that you have the AWS CLI installed and configured with the necessary access credentials and default region. If not already done, you can configure it by running:
 - aws configure
 
 2.  Create an IAM Role for EKS
+
 Create an IAM role that EKS can assume to create AWS resources for Kubernetes. You need this role to allow EKS service to manage resources on your behalf.
 
 Create a file called trust.json in your working directory on your local machine with the following policy:
@@ -275,25 +277,27 @@ aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::
 ```
 
 3.  Create the EKS Cluster
+
 You can create the cluster using the following command. Replace ```ClusterName```, ```RoleARN```, and other placeholders with your specific values.
 
 ```
 aws eks create-cluster --name <ClusterName> --role-arn <RoleARN> --resources-vpc-config subnetIds=<Subnet1,Subnet2>,securityGroupIds=<SecurityGroupId>
 ```
 
-Practical example: ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
+Practical examples:
+ ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
 
 ```aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-06a809ca73c9d07a1,subnet-097a3dbcf397e7237,securityGroupIds=sg-0eada7563a14d7615```
 
 
-_The ClusterName is a name of your choice_
-_role-arn, subnetIds, and securityGroupIds are picked from the AWS console_
-
-_ ```RoleARN``` is the ARN of the role you created above_
-_ ```Subnet1,Subnet2``` copy the ID of the subnets you want to deploy into. Always use a private subnet when available to make your cluster publicly inaccessible_ 
-_```SecurityGroupId``` use an existing securitygroup ID with the necessary permissions_ 
+- The ClusterName is a name of your choice
+- role-arn, subnetIds, and securityGroupIds are picked from the AWS console
+- ```rolearn``` is the ARN of the role you created above
+- For ```Subnet1,Subnet2``` copy the ID of the subnets you want to deploy into. Always use a private subnet when available to make your cluster publicly inaccessible 
+- ```SecurityGroupId``` use an existing securitygroup ID with the necessary permissions_ 
 
 4. Create a Node Group
+
 Before creating a node group, you need an IAM role for the EKS worker nodes. Create a similar trust policy for the worker nodes and attach the necessary IAM policies (AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly).
 
 4a. Create the Trust Relationship Policy Document
@@ -319,6 +323,7 @@ Save the following policy to a file named eks-nodegroup-trust-policy.json. This 
 ```
 
 4b. Create the Role
+
 Use the AWS CLI to create a new role with this trust relationship.
 
 ```
@@ -326,6 +331,7 @@ aws iam create-role --role-name MyCustomEKSNodeGroupRole --assume-role-policy-do
 ```
 
 4c. Attach Policies:
+
 Attach the necessary policies to the role. These typically include AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, and any other policies specific to your deployment.
 
 ```
@@ -342,6 +348,7 @@ aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn
 
 
 4d. Use the Custom Role in Your EKS Node Group Creation
+
 Now, use the ARN of this newly created custom role when creating your node group:
 
 ```
