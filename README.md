@@ -260,7 +260,8 @@ Create a file called trust.json in your working directory on your local machine 
 
 ### Run the following command to create the role:
 
-```aws iam create-role --role-name eksServiceRole --assume-role-policy-document file://trust.json
+```
+aws iam create-role --role-name eksServiceRole --assume-role-policy-document file://trust.json
 ```
 
 ### Attach the EKS service policy to the role:
