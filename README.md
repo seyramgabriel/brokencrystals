@@ -217,7 +217,7 @@ We are now ready to trigger the pipeline
 
 ![Screenshot (107)](https://github.com/user-attachments/assets/c9898135-d8c3-4e53-ba02-981ec2a6ae05)
 
-This will build, tag, and push your images to your dockerhub account where you can view the results of Docker Scout scann as in the picture below. The images are tagged with github.sha to reflect the image built per commit made to the repository.
+This will build, tag, and push your images to your dockerhub account where you can view the results of Docker Scout scan as in the picture below. The images are tagged with github.sha to reflect the image built per commit made to the repository.
 
 ![Screenshot (108)](https://github.com/user-attachments/assets/0f60ddb8-5ae1-463f-9ea6-cce22a7097d5)
 
