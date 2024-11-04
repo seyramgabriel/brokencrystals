@@ -285,6 +285,7 @@ aws eks create-cluster --name <ClusterName> --role-arn <RoleARN> --resources-vpc
 ```
 
 Practical examples:
+
  ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
 
 ```aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-06a809ca73c9d07a1,subnet-097a3dbcf397e7237,securityGroupIds=sg-0eada7563a14d7615```
@@ -355,7 +356,7 @@ Now, use the ARN of this newly created custom role when creating your node group
 aws eks create-nodegroup --cluster-name _ClusterName_ --nodegroup-name _NodeGroupName_ --node-role arn:aws:iam::_YourAWSAccountNumber_:role/MyCustomEKSNodeGroupRole --subnets subnet-0b79cd63eecbc37ac _subnet-id_ _subnet-id_ _subnet-id_ --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3
 ```
 
-practical example: 
+practical examples: 
 
 ```
 aws eks create-nodegroup --region us-east-2 --cluster-name practice_cluster --nodegroup-name practice_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
