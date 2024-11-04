@@ -1,5 +1,5 @@
 
-## Creating a Jenkins Pipeline for SonarQube Scanning
+## Creating a Jenkins Pipeline for SonarQube Static Scan
 
 **1.** Launch an amazon linux t2.large ec2 instance and assign ssm role
 
@@ -167,7 +167,8 @@ Now go to the SonarQube Server, Click on "Projects" and view the result of asses
 
 ### GitHub Webhook
 
-You can automate the the build trigger by using a GitHub webhook:
+You can automate the the build trigger by using a GitHub webhook.
+Steps to follow:
 
 * Go to your GitHub repository
 * Click on "Settings" 
@@ -185,6 +186,195 @@ You can automate the the build trigger by using a GitHub webhook:
 * Scroll down and tick "GitHub hook trigger for GITSCM polling" under "Build Triggers"
 
 Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
+
+
+# Creating a GitHub pipeline for static scan on dockerhub 
+
+You can automate the build, tag, and push of images into dockerhub and use Docker Scout to scan the pushed images.
+This is done by a manual trigger of the .github/workflows/Cloudsec-test file in this repository.
+The Cloudsec-test file has three jobs for sast scan, deployment, and dast scan respectively.
+
+Pre-requisites:
+* Dockerhub account
+* Dockerhub username and password
+* Dockerhub repository name
+
+Follow the steps below:
+
+* Create a dockerhub account (If you don't already have one)
+* Create a repository named brokencrystals on dockerhub
+* Inside the brokencyrstals repository on dockerhub, go to "settings" and check "Docker Scout image analysis"
+
+* Create a GitHub repository secret for your DOCKERHUB_USERNAME 
+* Create a GitHub repository secret for your DOCKERHUB_TOKEN (You can use either your dockerhub password or token)
+
+We are now ready to trigger the pipeline 
+
+* In your GitHub repository, Click on "Actions" at the top menu
+* Click on "Cloudsec-test" on the left pane
+* Click on "Run workflow"
+* Make sure "sast" is selected in the pop up and click "Run workflow"
+
+![Screenshot (107)](https://github.com/user-attachments/assets/c9898135-d8c3-4e53-ba02-981ec2a6ae05)
+
+This will build, tag, and push your images to your dockerhub account where you can view the results of Docker Scout scann as in the picture below. The images are tagged with github.sha to reflect the image built per commit made to the repository.
+
+![Screenshot (108)](https://github.com/user-attachments/assets/0f60ddb8-5ae1-463f-9ea6-cce22a7097d5)
+
+# Automating deployment to AWS EKS
+
+After a sast scan has been performed, if you are satisfied with the security analysis or have taken remedial actions, you can go ahead to deploy the pushed images.
+
+Pre-requisites: 
+
+* AWS Account
+* AWS EKS Cluster and NodeGroup
+
+Follow the steps below to create an AWS Cluster:
+
+### How to Setup an EKS Cluster using AWS CLI
+
+1.   Install and Configure the AWS CLI
+Ensure that you have the AWS CLI installed and configured with the necessary access credentials and default region. If not already done, you can configure it by running:
+- aws configure
+
+2.  Create an IAM Role for EKS
+Create an IAM role that EKS can assume to create AWS resources for Kubernetes. You need this role to allow EKS service to manage resources on your behalf.
+
+Create a file called trust.json in your working directory on your local machine with the following policy:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "eks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+### Run the following command to create the role:
+
+```aws iam create-role --role-name eksServiceRole --assume-role-policy-document file://trust.json
+```
+
+### Attach the EKS service policy to the role:
+
+```
+aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+```
+
+```
+aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+```
+
+3.  Create the EKS Cluster
+You can create the cluster using the following command. Replace ```ClusterName```, ```RoleARN```, and other placeholders with your specific values.
+
+```
+aws eks create-cluster --name <ClusterName> --role-arn <RoleARN> --resources-vpc-config subnetIds=<Subnet1,Subnet2>,securityGroupIds=<SecurityGroupId>
+```
+
+Practical example: ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
+
+```aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-06a809ca73c9d07a1,subnet-097a3dbcf397e7237,securityGroupIds=sg-0eada7563a14d7615```
+
+
+_The ClusterName is a name of your choice_
+_role-arn, subnetIds, and securityGroupIds are picked from the AWS console_
+
+_ ```RoleARN``` is the ARN of the role you created above_
+_ ```Subnet1,Subnet2``` copy the ID of the subnets you want to deploy into. Always use a private subnet when available to make your cluster publicly inaccessible_ 
+_```SecurityGroupId``` use an existing securitygroup ID with the necessary permissions_ 
+
+4. Create a Node Group
+Before creating a node group, you need an IAM role for the EKS worker nodes. Create a similar trust policy for the worker nodes and attach the necessary IAM policies (AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly).
+
+4a. Create the Trust Relationship Policy Document
+
+Save the following policy to a file named eks-nodegroup-trust-policy.json. This policy allows EC2 and EKS services to assume the role.
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "ec2.amazonaws.com",
+          "eks.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+4b. Create the Role
+Use the AWS CLI to create a new role with this trust relationship.
+
+```
+aws iam create-role --role-name MyCustomEKSNodeGroupRole --assume-role-policy-document file://eks-nodegroup-trust-policy.json
+```
+
+4c. Attach Policies:
+Attach the necessary policies to the role. These typically include AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, and any other policies specific to your deployment.
+
+```
+aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+```
+
+```
+aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+```
+
+```
+aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+```
+
+
+4d. Use the Custom Role in Your EKS Node Group Creation
+Now, use the ARN of this newly created custom role when creating your node group:
+
+```
+aws eks create-nodegroup --cluster-name _ClusterName_ --nodegroup-name _NodeGroupName_ --node-role arn:aws:iam::_YourAWSAccountNumber_:role/MyCustomEKSNodeGroupRole --subnets subnet-0b79cd63eecbc37ac _subnet-id_ _subnet-id_ _subnet-id_ --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3
+```
+
+practical example: 
+
+```
+aws eks create-nodegroup --region us-east-2 --cluster-name practice_cluster --nodegroup-name practice_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
+```
+
+```
+aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --nodegroup-name brokencrystals_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-06a809ca73c9d07a1 subnet-097a3dbcf397e7237 --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
+```
+
+_Ensure that your cluster is created before you run the command to create a node group_
+
+With the Cluster and NodeGroup ready, we are now ready to deploy into AWS EKS. 
+
+* Set up repository secrets for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+* Edit the name of the AWS EKS cluster on line 91 from "brokencrystals" to the name you gave to your cluster
+* In your GitHub repository, Click on "Actions" at the top menu
+* Click on "Cloudsec-test" on the left pane
+* Click on "Run workflow"
+* Make sure "deploy" is selected in the pop up and click "Run workflow"
+
+You can view the output of the workflow as it runs:
+
+![Screenshot (110)](https://github.com/user-attachments/assets/b35597b5-fff4-4809-a91d-cc869fe7868a)
+
+![Screenshot (109)](https://github.com/user-attachments/assets/85fdff13-88fa-4388-84b1-57c73c797459)
+
+![Screenshot (111)](https://github.com/user-attachments/assets/86312283-4f87-451f-bfdc-b51150191896)
 
 
 
