@@ -355,7 +355,7 @@ Now, use the ARN of this newly created custom role when creating your node group
 aws eks create-nodegroup --cluster-name _ClusterName_ --nodegroup-name _NodeGroupName_ --node-role arn:aws:iam::_YourAWSAccountNumber_:role/MyCustomEKSNodeGroupRole --subnets subnet-0b79cd63eecbc37ac _subnet-id_ _subnet-id_ _subnet-id_ --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3
 ```
 
-practical examples: 
+practical example: 
 
 ```
 aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --nodegroup-name brokencrystals_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
