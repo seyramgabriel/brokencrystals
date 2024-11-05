@@ -234,12 +234,12 @@ Follow the steps below to create an AWS Cluster:
 
 ### How to Setup an EKS Cluster using AWS CLI
 
-1.   Install and Configure the AWS CLI
+**1.**   Install and Configure the AWS CLI
 
 Ensure that you have the AWS CLI installed and configured with the necessary access credentials and default region. If not already done, you can configure it by running:
 - aws configure
 
-2.  Create an IAM Role for EKS
+**2.**  Create an IAM Role for EKS
 
 Create an IAM role that EKS can assume to create AWS resources for Kubernetes. You need this role to allow EKS service to manage resources on your behalf.
 
@@ -276,7 +276,7 @@ aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::
 aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 ```
 
-3.  Create the EKS Cluster
+**3.**  Create the EKS Cluster
 
 You can create the cluster using the following command. Replace ```ClusterName```, ```RoleARN```, and other placeholders with your specific values.
 
@@ -288,9 +288,6 @@ Practical examples:
 
  ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
 
-```aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-06a809ca73c9d07a1,subnet-097a3dbcf397e7237,securityGroupIds=sg-0eada7563a14d7615```
-
-
 - The ClusterName is a name of your choice
 - role-arn, subnetIds, and securityGroupIds are picked from the AWS console
 - ```rolearn``` is the ARN of the role you created above
@@ -301,7 +298,7 @@ Practical examples:
 
 Before creating a node group, you need an IAM role for the EKS worker nodes. Create a similar trust policy for the worker nodes and attach the necessary IAM policies (AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly).
 
-4a. Create the Trust Relationship Policy Document
+**4a.** Create the Trust Relationship Policy Document
 
 Save the following policy to a file named eks-nodegroup-trust-policy.json. This policy allows EC2 and EKS services to assume the role.
 
@@ -323,7 +320,7 @@ Save the following policy to a file named eks-nodegroup-trust-policy.json. This 
 }
 ```
 
-4b. Create the Role
+**4b.** Create the Role
 
 Use the AWS CLI to create a new role with this trust relationship.
 
@@ -331,7 +328,7 @@ Use the AWS CLI to create a new role with this trust relationship.
 aws iam create-role --role-name MyCustomEKSNodeGroupRole --assume-role-policy-document file://eks-nodegroup-trust-policy.json
 ```
 
-4c. Attach Policies:
+**4c.** Attach Policies:
 
 Attach the necessary policies to the role. These typically include AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, and any other policies specific to your deployment.
 
@@ -348,7 +345,7 @@ aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn
 ```
 
 
-4d. Use the Custom Role in Your EKS Node Group Creation
+**4d.** Use the Custom Role in Your EKS Node Group Creation
 
 Now, use the ARN of this newly created custom role when creating your node group:
 
@@ -360,10 +357,6 @@ practical examples:
 
 ```
 aws eks create-nodegroup --region us-east-2 --cluster-name practice_cluster --nodegroup-name practice_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
-```
-
-```
-aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --nodegroup-name brokencrystals_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-06a809ca73c9d07a1 subnet-097a3dbcf397e7237 --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
 ```
 
 _Ensure that your cluster is created before you run the command to create a node group_
