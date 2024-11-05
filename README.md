@@ -284,9 +284,11 @@ You can create the cluster using the following command. Replace ```ClusterName``
 aws eks create-cluster --name <ClusterName> --role-arn <RoleARN> --resources-vpc-config subnetIds=<Subnet1,Subnet2>,securityGroupIds=<SecurityGroupId>
 ```
 
-Practical examples:
+Practical example:
 
- ```aws eks create-cluster --region us-east-2 --name practice_cluster --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615```
+ ```
+ aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615
+ ```
 
 - The ClusterName is a name of your choice
 - role-arn, subnetIds, and securityGroupIds are picked from the AWS console
@@ -356,7 +358,7 @@ aws eks create-nodegroup --cluster-name _ClusterName_ --nodegroup-name _NodeGrou
 practical examples: 
 
 ```
-aws eks create-nodegroup --region us-east-2 --cluster-name practice_cluster --nodegroup-name practice_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
+aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --nodegroup-name brokencrystals_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
 ```
 
 _Ensure that your cluster is created before you run the command to create a node group_
