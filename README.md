@@ -173,7 +173,7 @@ Steps to follow:
 * Go to your GitHub repository
 * Click on "Settings" 
 * Click on "Webhook"
-* Click on "Edit" and enter your GitHub password
+* Click on "Add webhook" and enter your GitHub password
 * Enter a URL on this fashion ```http://jenkins_ipaddress:9090/github-webhook/``` as the Payload URL **eg.** ```http://3.131.162.22:9090/github-webhook/```
 
 ![Screenshot (95)](https://github.com/user-attachments/assets/d1bd8af8-d71d-4a1d-bd93-f7bbf958f0ad)
