@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: db
-          image: seyramgabriel/brokencrystals:postgres-a5c6ea1e5c9eeca5b0fd7e9e98806ea32cdee881 #VERSION_TAG #-abff3fc1607066afcdaf4ea931d6a2b68709a748
+          image: seyramgabriel/brokencrystals:postgres-VERSION_TAG
           env:
             - name: POSTGRES_DB
               value: "bc"
@@ -146,7 +146,7 @@ spec:
     spec:
       containers:
         - name: nodejs
-          image: seyramgabriel/brokencrystals:nodejs-a5c6ea1e5c9eeca5b0fd7e9e98806ea32cdee881 #VERSION_TAG #-abff3fc1607066afcdaf4ea931d6a2b68709a748
+          image: seyramgabriel/brokencrystals:nodejs-VERSION_TAG
           envFrom:
             - configMapRef:
                 name: app-config
@@ -216,7 +216,7 @@ spec:
     spec:
       containers:
         - name: mailcatcher
-          image: seyramgabriel/brokencrystals:mailcatcher-a5c6ea1e5c9eeca5b0fd7e9e98806ea32cdee881 #VERSION_TAG #-abff3fc1607066afcdaf4ea931d6a2b68709a748
+          image: seyramgabriel/brokencrystals:mailcatcher-VERSION_TAG
           ports:
             - containerPort: 1080
             - containerPort: 1025
