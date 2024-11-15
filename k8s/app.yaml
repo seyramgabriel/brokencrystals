@@ -82,7 +82,7 @@ spec:
       labels:
         app: db
     spec:
-      serviceAccountName: csn-capstone-service-account
+      serviceAccountName: brokencrystals-service-account
       volumes:
         - name: pg-volume
           configMap:
@@ -90,12 +90,12 @@ spec:
         - name: init-script
           configMap:
             name: db-init-scripts-configmap
-        - name: dbcredentials
+        - name: dbcredentialss
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "dbcredentials"
+              secretProviderClass: "dbcredentialss"
       containers:
         - name: db
           image: seyramgabriel/brokencrystals:postgres-VERSION_TAG 
@@ -112,7 +112,7 @@ spec:
             - name: init-script
               mountPath: /docker-entrypoint-initdb.d/pg.sql
               subPath: pg.sql
-            - name: dbcredentials
+            - name: dbcredentialss
               mountPath: "/mnt/secrets-store"
               readOnly: true
 

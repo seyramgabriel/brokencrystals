@@ -74,7 +74,7 @@ jobs:
     if: ${{ github.event.inputs.devsecops_action == 'deploy' }}
     outputs:
     URL: ${{ steps.verify_deployment.outputs.URL }}
-    #needs: btpscani  # Ensure that deploy job depends on successful completion of btpscani job
+    #needs: sast  # Ensure that deploy job depends on successful completion of sast job
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
       uses: azure/setup-kubectl@v1
 
     - name: Load AWS EKS credentials
-      run: aws eks update-kubeconfig --name brokencrystals --region us-east-2 # Change to your cluster name & region
+      run: aws eks update-kubeconfig --name brokencrystalss --region us-east-2 # Change to your cluster name & region
 
     - name: Update Deployment Image
       run: |

@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: brokencrystals
+  name: brokencrystalss
   region: us-east-2
 
 iam:
@@ -11,5 +11,5 @@ iam:
 nodeGroups:
   - name: ng-general
     instanceType: t3.medium
-    instanceName: cloudsec-node
+    instanceName: brokencrystals-node
     desiredCapacity: 1
