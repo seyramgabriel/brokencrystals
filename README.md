@@ -434,7 +434,10 @@ Navigate to the AWS Console to view the deployment and Load balancer URL in your
 
 The dast job in the Cloudsec-wf.yml file has been set to need deploy job, hence, once the application is deployed successfully, the dast job begins to run. The workflow dynamically picks the URL of the deployed application from the deploy job, and runs a dast scan. 
 
+You can download and access the zap-report from the Actions tab:
 ![Screenshot (143)](https://github.com/user-attachments/assets/cf1339da-2e77-431b-8d1d-16e7b5f2d78f)
+
+After downloading, unzip the report to view the full report.
 
 ![Screenshot (144)](https://github.com/user-attachments/assets/6c16a0f1-4471-479a-b24e-0cb9aaa7ae9f)
 ![Screenshot (145)](https://github.com/user-attachments/assets/b99af2e7-8a3e-486a-8b05-d49ca621fa0d)
