@@ -74,7 +74,8 @@ jobs:
     if: ${{ github.event.inputs.devsecops_action == 'deploy' }}
     outputs:
     URL: ${{ steps.verify_deployment.outputs.URL }}
-    #needs: sast  # Ensure that deploy job depends on successful completion of sast job
+    
+    # needs: sast  # Ensure that deploy job depends on successful completion of sast job
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -84,7 +85,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: us-east-2
 
     - name: Set up Kubectl
       uses: azure/setup-kubectl@v1
@@ -116,8 +117,8 @@ jobs:
 
   dast:
     runs-on: ubuntu-latest
-    # if: ${{ github.event.inputs.devsecops_action == 'dast' }}
-    needs: deploy
+    if: ${{ github.event.inputs.devsecops_action == 'dast' }}
+    # needs: deploy
     env:
     URL: ${{ needs.deploy.outputs.URL }}
     steps:
