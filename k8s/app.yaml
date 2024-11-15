@@ -90,12 +90,12 @@ spec:
         - name: init-script
           configMap:
             name: db-init-scripts-configmap
-        - name: dbcredentialss
+        - name: db-credentials
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "dbcredentialss"
+              secretProviderClass: "db-credentials"
       containers:
         - name: db
           image: seyramgabriel/brokencrystals:postgres-VERSION_TAG 
@@ -112,7 +112,7 @@ spec:
             - name: init-script
               mountPath: /docker-entrypoint-initdb.d/pg.sql
               subPath: pg.sql
-            - name: dbcredentialss
+            - name: db-credentials
               mountPath: "/mnt/secrets-store"
               readOnly: true
 
