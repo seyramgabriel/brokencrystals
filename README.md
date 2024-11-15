@@ -1,15 +1,50 @@
+### Project Description:
+This project uses the BrokenCrystals application, which is a benchmark application that simulates a vulnerable environment. The Brokencrystals application (https://github.com/NeuraLegion/brokencrystals) has been forked and cloned as is in the repository, and necessary modifications made for the purpose of this project.
 
-## Create a Jenkins Pipeline for SonarQube Static Scan
+
+### Project Objective: 
+The object of this project is to implement a secure CI/CD pipeline using Jenkins and/or GitHub Actions to automate the build, test, and deployment processes, incorporating security best practices throughout the development lifecycle.
+
+### Project Key Requirements:
+
+**Static Code Analysis:** Integrate a Static Application Security Testing (SAST) tool (such as SonarQube or Snyk) into the pipeline to analyze code for vulnerabilities.
+
+**Secrets Management:** Utilize a secrets management tool (like HashiCorp Vault or AWS Secrets Manager) to securely manage sensitive information and credentials.
+
+**Docker Image:** Build and push the Docker image to any selected Docker registry (such as Amazon ECR or Docker Hub) following security best practices. Configure image scanning for the deployed Docker images to detect vulnerabilities.
+
+**Deployment:** Deploy the application to a Kubernetes cluster provisioned with Minikube or Kind. Use port forwarding to ensure that the application is publicly accessible.
+
+**Dynamic Application Security Testing (DAST):** Implement DAST tools (such as OWASP ZAP) into the pipeline to test for vulnerabilities after deployment.
+
+## Deliverables:
+
+GitHub Repository containing a Dockerfile, Jenkins pipeline script or GitHub Actions workflow file, Kubernetes manifests (YAML files) for deployment, Configuration files for security tools, and README file documenting the project setup and execution.
+
+Screenshots showing pipeline execution, the deployed application, and security scan results.
+
+### Project Implementation
+
+This repository uses:
+* SonarQube and Jenkins for Static Application Security Testing
+* Dockerhub for container registry
+* kubectl and eksctl utilities to deploy images to AWS EKS
+* AWS Secrets to manage sensitive information, being DATABASE_USERNAME and DATABASE_PASSWORD
+* OWASP ZAP for Dynamic Application Security Testing
+
+
+
+## Create a Jenkins Pipeline for SonarQube Static Application Security Testing
 
 **1.** Launch an Amazon Linux t2.large ec2 instance and assign ssm role
 
 **2.** Connect to the terminal of the ec2 instance via Session Manager on the AWS Console
 
-**3a** Move to root user
+**3a.** Move to root user
 ```
 sudo su
 ```
-**3b** Make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
+**3b.** Make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
 
 **4.** Download install.sh file to install docker
 ```
@@ -193,7 +228,7 @@ Steps to follow:
 Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
 
 
-# Create a GitHub pipeline for static scan on dockerhub 
+# Create a GitHub pipeline for to build, tag, push and scan on dockerhub 
 
 You can automate the build, tag, and push of images into dockerhub and use Docker Scout to scan the pushed images.
 This is done by a manual trigger of the .github/workflows/Cloudsec-wf file in this repository.
@@ -226,7 +261,7 @@ This will build, tag, and push your images to your dockerhub account where you c
 
 ![Screenshot (108)](https://github.com/user-attachments/assets/0f60ddb8-5ae1-463f-9ea6-cce22a7097d5)
 
-# Automate deployment to AWS EKS
+# Automate deployment to AWS EKS and manage secrets with AWS Secrets Manager
 
 After a sast scan has been performed, if you are satisfied with the security analysis or have taken remedial actions, you can go ahead to deploy the pushed images.
 
@@ -377,10 +412,15 @@ You can use the output loadbalancer dns to access the application via a web brow
 ![Screenshot (137)](https://github.com/user-attachments/assets/e87fe87e-fee9-4271-b9e5-801f8c87cfdb)
 
 
+**_Note that, because the sast job tags the pushed images with github.sha, the deploy job should only be triggered straighaway if there is no commit to the repository after the sast job has been ran_**
 
-# Automate dast scan of the deployed application
+# Automate OWASP ZAP DAST scan of the deployed application
 
-Once the application is deployed successfully, the dast job begins to run. The workflow dynamically picks the URL of the deployed application from the deploy job, and runs a dast scan. 
+The dast job in the Cloudsec-wf.yml file has been set to need deploy job, hence, once the application is deployed successfully, the dast job begins to run. The workflow dynamically picks the URL of the deployed application from the deploy job, and runs a dast scan. 
+
+# Conclusion
+
+This is an insightful project 
 
 
 

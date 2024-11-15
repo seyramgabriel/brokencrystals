@@ -9,7 +9,7 @@ on:
         options:
         - sast
         - deploy
-        - dast
+        # - dast
         required: true
    
 permissions:
