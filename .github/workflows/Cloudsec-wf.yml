@@ -1,4 +1,4 @@
-name: Cloudsec-test
+name: Cloudsec-wf
 
 on:
    workflow_dispatch:
@@ -98,7 +98,7 @@ jobs:
         sed -i "s/VERSION_TAG/${{ github.sha }}/g" ./k8s/app.yaml
        
     - name: Deploy to EKS
-      run: kubectl apply -f k8s/  --validate=false # Path to your Kubernetes config files
+      run: kubectl apply -f k8s/app.yaml  --validate=false # Path to your Kubernetes config files
   
     - name: Verify deployment
       run: kubectl rollout status deployment/nodejs-deployment  # Change to your deployment resource name
