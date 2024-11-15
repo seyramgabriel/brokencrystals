@@ -27,6 +27,7 @@ Screenshots showing pipeline execution, the deployed application, and security s
 
 This repository uses:
 * SonarQube and Jenkins for Static Application Security Testing
+* jenkins_SonarQube directory for docker-compose.yml and install.sh files needes to install docker, docker-compose and run Jenkins and SonarQube as containers
 * Dockerhub for container registry
 * kubectl and eksctl utilities to deploy images to AWS EKS
 * AWS Secrets to manage sensitive information, being DATABASE_USERNAME and DATABASE_PASSWORD
