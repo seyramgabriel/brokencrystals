@@ -230,155 +230,115 @@ This will build, tag, and push your images to your dockerhub account where you c
 
 After a sast scan has been performed, if you are satisfied with the security analysis or have taken remedial actions, you can go ahead to deploy the pushed images.
 
-Pre-requisites: 
+## Prerequisites
 
-* AWS Account
-* AWS EKS Cluster and NodeGroup
+- **eksctl**: for managing EKS clusters.
+- **AWS CLI**: to create and manage AWS resources.
+- **kubectl**: to interact with the Kubernetes cluster. ([How to install kubectl utility](https://docs.aws.amazon.com/eks/latest/userguide/setting-up.html))
+- **Helm**: for deploying Helm charts ([How to install helm](https://docs.aws.amazon.com/eks/latest/userguide/helm.html)).
 
-Follow the steps below to create an AWS Cluster:
+### Create Kubernetes Cluster and ensure you have set up authentication to access AWS and your Kubernetes cluster.
 
-### How to Setup an EKS Cluster using AWS CLI
+---
 
-**1.**   Install and Configure the AWS CLI
+## Steps
 
-Ensure that you have the AWS CLI installed and configured with the necessary access credentials and default region. If not already done, you can configure it by running:
-- aws configure
+**1.** Create the EKS Cluster
 
-**2.**  Create an IAM Role for EKS
-
-Create an IAM role that EKS can assume to create AWS resources for Kubernetes. You need this role to allow EKS service to manage resources on your behalf.
-
-Create a file called trust.json in your working directory on your local machine with the following policy:
+First, we create the EKS cluster using the `cluster.yml` configuration file. Edit the metadata (name: brokencrystals
+  region: us-east-2), and the nodeGroups section (instanceType: t3.medium, instanceName: brokencrystals-node,desiredCapacity: 1) to your preference.
 
 ```
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
+eksctl create cluster -f k8s/cluster.yml
 ```
 
-Run the following command to create the role:
+![Screenshot (130)](https://github.com/user-attachments/assets/b462faf1-3d34-478b-8ebc-affc903f6577)
+
+eksctl uses AWS Cloudformation to provision the clusters and nodes, hence you can monitor the progress of creation on AWS CloudFormation. 
+
+![Screenshot (132)](https://github.com/user-attachments/assets/bced871c-1332-4db9-b48d-e26d7f29794c)
+
+
+**2.** Install the Secrets Store CSI Driver with Helm
+Add the Secrets Store CSI Driver to sync secrets from AWS Secrets Manager into Kubernetes as native secrets.
 
 ```
-aws iam create-role --role-name eksServiceRole --assume-role-policy-document file://trust.json
+helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+helm repo update
+helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system --set syncSecret.enabled=true
 ```
 
-Attach the EKS service policy to the role:
+**3.** Install AWS Secrets Manager Provider
+Install the AWS Secrets Manager provider for the Secrets Store CSI Driver:
 
 ```
-aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+kubectl apply -f https://raw.githubusercontent.com/aws/secrets-store-csi-driver-provider-aws/main/deployment/aws-provider-installer.yaml
 ```
 
-```
-aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-```
+This command deploys necessary configurations for accessing secrets in AWS.
 
-**3.**  Create the EKS Cluster
-
-You can create the cluster using the following command. Replace ```ClusterName```, ```RoleARN```, and other placeholders with your specific values.
+**4.** Configure AWS Region and Cluster Name
+Set your AWS region and cluster name to variables for ease of use in the commands below:
 
 ```
-aws eks create-cluster --name <ClusterName> --role-arn <RoleARN> --resources-vpc-config subnetIds=<Subnet1,Subnet2>,securityGroupIds=<SecurityGroupId>
+export REGION=us-east-2
+export CLUSTERNAME=brokencrystals
 ```
 
-Practical example:
-
- ```
- aws eks create-cluster --region us-east-2 --name brokencrystals --role-arn arn:aws:iam::431877974142:role/eksServiceRole  --resources-vpc-config subnetIds=subnet-07e6eb9342550f598,subnet-051e1fc4354ded80d,securityGroupIds=sg-0eada7563a14d7615
- ```
-
-- The ClusterName is a name of your choice
-- role-arn, subnetIds, and securityGroupIds are picked from the AWS console
-- ```rolearn``` is the ARN of the role you created above
-- For ```Subnet1,Subnet2``` copy the ID of the subnets you want to deploy into. Always use a private subnet when available to make your cluster publicly inaccessible 
-- ```SecurityGroupId``` use an existing securitygroup ID with the necessary permissions_ 
-
-**4.** Create a Node Group
-
-Before creating a node group, you need an IAM role for the EKS worker nodes. Create a similar trust policy for the worker nodes and attach the necessary IAM policies (AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly).
-
-**4a.** Create the Trust Relationship Policy Document
-
-Save the following policy to a file named eks-nodegroup-trust-policy.json. This policy allows EC2 and EKS services to assume the role.
+**5.** Create a Secret in AWS Secrets Manager
+Create a secret with database credentials in AWS Secrets Manager. Save the ARN for later use.
+Alter the name, DATABASE_USER, DATABASE_PASSWORD to your preference before you run the command.
 
 ```
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": [
-          "ec2.amazonaws.com",
-          "eks.amazonaws.com"
-        ]
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
+SECRET_ARN=$(aws --query ARN --output text secretsmanager create-secret --name db-credentials --secret-string '{"DATABASE_USER":"DevOps", "DATABASE_PASSWORD":"DevSecOps"}' --region "$REGION")
 ```
 
-**4b.** Create the Role
+After successful creation, you can checkout the secret on AWS Secrets Manager
 
-Use the AWS CLI to create a new role with this trust relationship.
-
-```
-aws iam create-role --role-name MyCustomEKSNodeGroupRole --assume-role-policy-document file://eks-nodegroup-trust-policy.json
-```
-
-**4c.** Attach Policies:
-
-Attach the necessary policies to the role. These typically include AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, and any other policies specific to your deployment.
+**6.** Set Up IAM Policy for Accessing Secrets
+Create an IAM policy to allow access to the secret.
+Replace the ARN in the command below with the one generated in the previous step. You can also replace the "brokencrystals-iam-policy" with you preferred policy name.
 
 ```
-aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+POLICY_ARN=$(aws --region "$REGION" --query Policy.Arn --output text iam create-policy --policy-name brokencrystals-iam-policy --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [ {
+        "Effect": "Allow",
+        "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        "Resource": ["arn:aws:secretsmanager:us-east-2:431877974142:secret:dbcredentials-uWE5Ed"]
+    } ]
+}')
 ```
+Check out the 'brokencrystals-iam-policy" or whichever name you use on AWS IAM.
+
+
+**7.** Create IAM Service Account
+Create a Kubernetes service account and attach the IAM policy to allow access to the AWS Secrets Manager secret.
 
 ```
-aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+eksctl create iamserviceaccount --name brokencrystals-service-account --region="$REGION" --cluster "$CLUSTERNAME" --attach-policy-arn "$POLICY_ARN" --approve --override-existing-serviceaccounts
 ```
 
-```
-aws iam attach-role-policy --role-name MyCustomEKSNodeGroupRole --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-```
+This command sets up the necessary IAM permissions to allow the Kubernetes application to retrieve the secret.
+
+You can check it out on your cluster from minikube.
+
+![Screenshot (133)](https://github.com/user-attachments/assets/58dc7318-834f-4abb-a1b8-f2573c3cfeaa)
 
 
-**4d.** Use the Custom Role in Your EKS Node Group Creation
+**8.** Apply the Secret Provider YAML
+Deploy the Secret Provider configuration (brokencrystals-secret-provider.yml) in Kubernetes to mount the AWS Secret as an environment variable in the BrokenCrystals application.
+Replace the "objectName" and "objectVersion" with the arn and versionid of your AWS Secret respectively, before you run the comman.
 
-Now, use the ARN of this newly created custom role when creating your node group:
-
-```
-aws eks create-nodegroup --cluster-name _ClusterName_ --nodegroup-name _NodeGroupName_ --node-role arn:aws:iam::_YourAWSAccountNumber_:role/MyCustomEKSNodeGroupRole --subnets subnet-0b79cd63eecbc37ac _subnet-id_ _subnet-id_ _subnet-id_ --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3
-```
-
-practical example: 
 
 ```
-aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --nodegroup-name brokencrystals_node --node-role arn:aws:iam::431877974142:role/MyCustomEKSNodeGroupRole --subnets subnet-07e6eb9342550f598 subnet-051e1fc4354ded80d --instance-types t2.medium --scaling-config minSize=3,maxSize=5,desiredSize=3"
+kubectl apply -f k8s/brokencrystals-secret-provider.yml
 ```
 
-_Ensure that your cluster is created before you run the command to create a node group_
+![Screenshot (134)](https://github.com/user-attachments/assets/b6ccf7c9-8bb3-4274-b5c0-0ca62533c2f6)
 
-**5.** Update 'kubeconfig'
-You can manage your AWS cluster with kubectl by updating your kubeconfig file with the following command:
 
-```
-aws eks update-kubeconfig --name <ClusterName>
-```
-
-Practical example: 
-```
-aws eks update-kubeconfig --name --region us-east-2 brokencrystals
-```
+The application can now securely access the secrets from AWS Secrets Manager.
 
 You can run the following commands in the AWS cluster to get nodes, pods, and namespaces respectively:
 
@@ -394,11 +354,11 @@ kubectl get pods -A
 kubectl get ns
 ```
 
-
-With the Cluster and NodeGroup ready, we are now ready to deploy into AWS EKS. 
+With the Cluster and NodeGroup ready, we are now ready to deploy into AWS EKS.
+Follow the steps below to trigger the deploy job in the cloudsec-wf.yml 
 
 * Set up repository secrets for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-* Edit the name of the AWS EKS cluster on line 91 from "brokencrystals" to the name you gave to your cluster
+* Edit the name of the AWS EKS cluster on line 95 from "brokencrystals" to the name you gave to your cluster
 * In your GitHub repository, Click on "Actions" at the top menu
 * Click on "Cloudsec-wf" on the left pane
 * Click on "Run workflow"
@@ -406,45 +366,21 @@ With the Cluster and NodeGroup ready, we are now ready to deploy into AWS EKS.
 
 You can view the output of the workflow as it runs:
 
-![Screenshot (110)](https://github.com/user-attachments/assets/b35597b5-fff4-4809-a91d-cc869fe7868a)
+![Screenshot (135)](https://github.com/user-attachments/assets/11f0b71d-20de-46a5-a0fb-dd1cd5b1425c)
 
-![Screenshot (109)](https://github.com/user-attachments/assets/85fdff13-88fa-4388-84b1-57c73c797459)
+Once the deploy job is done running, the load balancer dns will output.
 
-![Screenshot (111)](https://github.com/user-attachments/assets/86312283-4f87-451f-bfdc-b51150191896)
+![Screenshot (136)](https://github.com/user-attachments/assets/cf935879-ace0-48f3-ad6d-96fbdcc4295d)
 
+You can use the output loadbalancer dns to access the application via a web browser
 
-
-
-
-
+![Screenshot (137)](https://github.com/user-attachments/assets/e87fe87e-fee9-4271-b9e5-801f8c87cfdb)
 
 
 
 # Automate dast scan of the deployed application
 
-Once the application is deployed, you can replace the url in the dast job with the url of your application
-
-```
-dast:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.devsecops_action == 'dast' }}
-    steps:
-      - name: OWASP ZAP DAST Scan
-        continue-on-error: true
-        run: |
-          docker run --rm -v $(pwd):/zap/wrk:rw zaproxy/zap-stable zap-baseline.py -t 'https://seyramgabriel.github.io/brokencrystals/' || true
-```
-
-Then run the workflow with the dast option:
-* In your GitHub repository, Click on "Actions" at the top menu
-* Click on "Cloudsec-wf" on the left pane
-* Click on "Run workflow"
-* Make sure "dast" is selected in the pop up and click "Run workflow"
-
-You can view the output of the workflow as it runs: 
-
-
-
+Once the application is deployed successfully, the dast job begins to run. The workflow dynamically picks the URL of the deployed application from the deploy job, and runs a dast scan. 
 
 
 
