@@ -1,17 +1,17 @@
 
-## Creating a Jenkins Pipeline for SonarQube Static Scan
+## Create a Jenkins Pipeline for SonarQube Static Scan
 
-**1.** Launch an amazon linux t2.large ec2 instance and assign ssm role
+**1.** Launch an Amazon Linux t2.large ec2 instance and assign ssm role
 
-**2.** Get into the terminal via ssm on the console
+**2.** Connect to the terminal of the ec2 instance via Session Manager on the AWS Console
 
-**3** Run to move to root user
+**3a** Move to root user
 ```
 sudo su
 ```
-Make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
+**3b** Make sure you are in the usr directory, hence run ```cd ..``` if you are in bin directory
 
-**4.** Run to download install.sh file to install docker
+**4.** Download install.sh file to install docker
 ```
 wget -O install.sh https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/install.sh
 ```
@@ -37,12 +37,17 @@ bash install.sh
 wget -O docker-compose.yml https://raw.GitHubusercontent.com/seyramgabriel/brokencrystals/refs/heads/stable/jenkins_SonarQube/docker-compose.yml
 ```
 
-**8.** Run Jenkins and SonarQube containers
+**8a.** Run Jenkins and SonarQube containers
 ```
 docker-compose up -d
 ```
+**8b.** Check out the SonarQube and Jenkins containers
+```
+docker ps -a
+```
+_Notice the image ids and container ids_
 
-**9.** Run this command to get the Jenkins default password in the Jenkins container
+**9.** Output the Jenkins default password in the Jenkins container
 ```
 docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
@@ -51,7 +56,7 @@ docker exec -it demo-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 Access jenkins on the browser with ```http://ipaddress:9090``` **eg..** ```http://3.131.162.22:9090```
 
-_Install initial plugins and set your new user name and password:_
+_Install suggested initial plugins and set your new user name and password:_
 
 * Go to "Manage jenkins", 
 * Go to "Plugins", 
@@ -60,7 +65,7 @@ _Install initial plugins and set your new user name and password:_
 * Click "Install" on the top right corner
 * Scroll down and check the restart option.
 
-If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container with this command ```docker start container-id```
+If Jenkins becomes inaccessible, go to the terminal and start the Jenkins container with this command ```docker start jenkins-container-id```
 
 **eg.** 
 ```
@@ -73,7 +78,7 @@ docker start 00d94c57784f
 * Initial username and password for SonarQube are ```admin``` and ```admin``` respectively.
 * Set your new password and click "Update"
 * Click on "create a local project"
-* Enter Project display name and Project Key, take note of these two as they will be very essential for the pipeline, in this project we used "Cloudsec" for both.
+* Enter Project display name and Project Key, take note of these two as they will be very essential for the pipeline, in this project we use "Cloudsec" for both.
 * Enter Main branch name, make sure this is the name of your main branch in the repository you will be using. In this case it is "stable"
 * Click Next
 * Check "Use the global setting"
@@ -86,7 +91,7 @@ docker start 00d94c57784f
 * Enter a name for your token **eg.** ```Cloudsec-SonarQube-token```
 * Choose "Project Analysis token" under "Type" 
 * The project name **eg.** "Cloudsec" will populate under "Project"
-* Let the 30 days expiry under "Expires in" remain
+* You can set your preferred duration under "Expires in" 
 * Click "Generate"
 * Copy and save the token securely
 
@@ -188,11 +193,11 @@ Steps to follow:
 Now the pipeline will trigger automatically once there is a push to the repository on branch "stable"
 
 
-# Creating a GitHub pipeline for static scan on dockerhub 
+# Create a GitHub pipeline for static scan on dockerhub 
 
 You can automate the build, tag, and push of images into dockerhub and use Docker Scout to scan the pushed images.
-This is done by a manual trigger of the .github/workflows/Cloudsec-test file in this repository.
-The Cloudsec-test file has three jobs for sast scan, deployment, and dast scan respectively.
+This is done by a manual trigger of the .github/workflows/Cloudsec-wf file in this repository.
+The Cloudsec-wf file has three jobs for sast scan, deployment, and dast scan respectively.
 
 Pre-requisites:
 * Dockerhub account
@@ -211,7 +216,7 @@ Follow the steps below:
 We are now ready to trigger the pipeline 
 
 * In your GitHub repository, Click on "Actions" at the top menu
-* Click on "Cloudsec-test" on the left pane
+* Click on "Cloudsec-wf" on the left pane
 * Click on "Run workflow"
 * Make sure "sast" is selected in the pop up and click "Run workflow"
 
@@ -221,7 +226,7 @@ This will build, tag, and push your images to your dockerhub account where you c
 
 ![Screenshot (108)](https://github.com/user-attachments/assets/0f60ddb8-5ae1-463f-9ea6-cce22a7097d5)
 
-# Automating deployment to AWS EKS
+# Automate deployment to AWS EKS
 
 After a sast scan has been performed, if you are satisfied with the security analysis or have taken remedial actions, you can go ahead to deploy the pushed images.
 
@@ -260,13 +265,13 @@ Create a file called trust.json in your working directory on your local machine 
 }
 ```
 
-### Run the following command to create the role:
+Run the following command to create the role:
 
 ```
 aws iam create-role --role-name eksServiceRole --assume-role-policy-document file://trust.json
 ```
 
-### Attach the EKS service policy to the role:
+Attach the EKS service policy to the role:
 
 ```
 aws iam attach-role-policy --role-name eksServiceRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSServicePolicy
@@ -296,7 +301,7 @@ Practical example:
 - For ```Subnet1,Subnet2``` copy the ID of the subnets you want to deploy into. Always use a private subnet when available to make your cluster publicly inaccessible 
 - ```SecurityGroupId``` use an existing securitygroup ID with the necessary permissions_ 
 
-4. Create a Node Group
+**4.** Create a Node Group
 
 Before creating a node group, you need an IAM role for the EKS worker nodes. Create a similar trust policy for the worker nodes and attach the necessary IAM policies (AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly).
 
@@ -363,12 +368,39 @@ aws eks create-nodegroup --region us-east-2 --cluster-name brokencrystals --node
 
 _Ensure that your cluster is created before you run the command to create a node group_
 
+**5.** Update 'kubeconfig'
+You can manage your AWS cluster with kubectl by updating your kubeconfig file with the following command:
+
+```
+aws eks update-kubeconfig --name <ClusterName>
+```
+
+Practical example: 
+```
+aws eks update-kubeconfig --name --region us-east-2 brokencrystals
+```
+
+You can run the following commands in the AWS cluster to get nodes, pods, and namespaces respectively:
+
+```
+kubectl get nodes
+```
+
+```
+kubectl get pods -A
+```
+
+```
+kubectl get ns
+```
+
+
 With the Cluster and NodeGroup ready, we are now ready to deploy into AWS EKS. 
 
 * Set up repository secrets for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 * Edit the name of the AWS EKS cluster on line 91 from "brokencrystals" to the name you gave to your cluster
 * In your GitHub repository, Click on "Actions" at the top menu
-* Click on "Cloudsec-test" on the left pane
+* Click on "Cloudsec-wf" on the left pane
 * Click on "Run workflow"
 * Make sure "deploy" is selected in the pop up and click "Run workflow"
 
@@ -379,6 +411,37 @@ You can view the output of the workflow as it runs:
 ![Screenshot (109)](https://github.com/user-attachments/assets/85fdff13-88fa-4388-84b1-57c73c797459)
 
 ![Screenshot (111)](https://github.com/user-attachments/assets/86312283-4f87-451f-bfdc-b51150191896)
+
+
+
+
+
+
+
+
+
+# Automate dast scan of the deployed application
+
+Once the application is deployed, you can replace the url in the dast job with the url of your application
+
+```
+dast:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.devsecops_action == 'dast' }}
+    steps:
+      - name: OWASP ZAP DAST Scan
+        continue-on-error: true
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk:rw zaproxy/zap-stable zap-baseline.py -t 'https://seyramgabriel.github.io/brokencrystals/' || true
+```
+
+Then run the workflow with the dast option:
+* In your GitHub repository, Click on "Actions" at the top menu
+* Click on "Cloudsec-wf" on the left pane
+* Click on "Run workflow"
+* Make sure "dast" is selected in the pop up and click "Run workflow"
+
+You can view the output of the workflow as it runs: 
 
 
 

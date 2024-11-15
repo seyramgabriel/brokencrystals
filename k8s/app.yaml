@@ -7,73 +7,11 @@ metadata:
 data:
   DATABASE_HOST: "db-service"
   DATABASE_SCHEMA: "bc"
-  DATABASE_USER: "bc"
-  DATABASE_PASSWORD: "bc"
   DATABASE_PORT: "5432"
+  DATABASE_PASSWORD: "/mnt/secrets-store/DATABASE_PASSWORD"
+  DATABASE_USER: "/mnt/secrets-store/DATABASE_USER"
   URL: "http://nodejs-service:80"
   # Add other environment variables from your .env file as needed
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: db-service
-  namespace: default
-spec:
-  selector:
-    app: db
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
-  type: ClusterIP
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: db-deployment
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: db
-  template:
-    metadata:
-      labels:
-        app: db
-    spec:
-      containers:
-        - name: db
-          image: seyramgabriel/brokencrystals:postgres-VERSION_TAG
-          env:
-            - name: POSTGRES_DB
-              value: "bc"
-            - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: DATABASE_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: DATABASE_PASSWORD
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: init-script
-              mountPath: /docker-entrypoint-initdb.d/pg.sql
-              subPath: pg.sql
-      volumes:
-        - name: pg-volume
-          configMap:
-            name: app-config
-        - name: init-script
-          configMap:
-            name: db-init-scripts-configmap
-
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -111,7 +49,72 @@ data:
 
     CREATE INDEX IF NOT EXISTS "IDX_users_email" ON "user" ("email");
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: default
+spec:
+  selector:
+    app: db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+  namespace: default
+  labels:
+    app: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      serviceAccountName: csn-capstone-service-account
+      volumes:
+        - name: pg-volume
+          configMap:
+            name: app-config
+        - name: init-script
+          configMap:
+            name: db-init-scripts-configmap
+        - name: dbcredentials
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "bc-db-credentials"
+      containers:
+        - name: db
+          image: seyramgabriel/brokencrystals:postgres-VERSION_TAG 
+          env:
+            - name: POSTGRES_DB
+              value: "bc"
+            - name: POSTGRES_USER
+              value: /mnt/secrets-store/DATABASE_USER
+            - name: POSTGRES_PASSWORD
+              value: /mnt/secrets-store/DATABASE_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d/pg.sql
+              subPath: pg.sql
+            - name: dbcredentials
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
 
 ---
 apiVersion: v1
@@ -146,7 +149,7 @@ spec:
     spec:
       containers:
         - name: nodejs
-          image: seyramgabriel/brokencrystals:nodejs-VERSION_TAG
+          image: seyramgabriel/brokencrystals:nodejs-VERSION_TAG 
           envFrom:
             - configMapRef:
                 name: app-config
@@ -176,7 +179,6 @@ spec:
             failureThreshold: 3
             successThreshold: 1
 
-
 ---
 apiVersion: v1
 kind: Service
@@ -187,16 +189,15 @@ spec:
   selector:
     app: mailcatcher
   ports:
-    - name: http  # Added name for this port
+    - name: http  
       protocol: TCP
       port: 1080
       targetPort: 1080
-    - name: smtp  # Added name for this port
+    - name: smtp  
       protocol: TCP
       port: 1025
       targetPort: 1025
   type: ClusterIP
-
 
 ---
 apiVersion: apps/v1
@@ -216,7 +217,7 @@ spec:
     spec:
       containers:
         - name: mailcatcher
-          image: seyramgabriel/brokencrystals:mailcatcher-VERSION_TAG
+          image: seyramgabriel/brokencrystals:mailcatcher-VERSION_TAG 
           ports:
             - containerPort: 1080
             - containerPort: 1025
