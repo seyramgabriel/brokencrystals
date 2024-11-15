@@ -95,7 +95,7 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "bc-db-credentials"
+              secretProviderClass: "dbcredentials"
       containers:
         - name: db
           image: seyramgabriel/brokencrystals:postgres-VERSION_TAG 
