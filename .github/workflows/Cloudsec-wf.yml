@@ -5,15 +5,16 @@ on:
     inputs:
       devsecops_action:
         type: choice
-        description: select DevSecOps action
+        description: Select DevSecOps action
         options:
-        - sast
-        - deploy
-        - dast
+          - sast
+          - deploy
+          - dast
         required: true
-   
+
 permissions:
   checks: write
+  content: write
 
 jobs:
   sast:
@@ -25,157 +26,84 @@ jobs:
 
       - name: SAST Scan
         run: grep -r -e "password" -e "secret" -e "keys" .
-      
-      # Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
 
-      - name: build server
+      - name: Build server
         run: npm ci && npm run build
 
-      - name: build client
+      - name: Build client
         run: npm ci --prefix client && npm run build --prefix client
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-  
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build the Docker images
+      - name: Build Docker images and push
         run: |
-          docker-compose --file=docker-compose.local.yml up -d
           docker-compose --file=docker-compose.local.yml up -d --build
-
-      - name: Checking for images built and pulled 
-        run: sudo docker images
-
-      # Tagging the Docker images manually using docker tag command
-      - name: Tag Docker images
-        run: |
           docker tag brokencrystals_nodejs:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-${{ github.sha }}
           docker tag postgres:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-${{ github.sha }}
           docker tag sj26/mailcatcher:latest ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-${{ github.sha }}
-                
-      - name: Push Docker images
-        run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:nodejs-${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:postgres-${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/brokencrystals:mailcatcher-${{ github.sha }}
-          
 
   deploy:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.devsecops_action == 'deploy' }}
-    outputs:
-    URL: ${{ steps.verify_deployment.outputs.URL }}
-    
-    # needs: sast  # Ensure that deploy job depends on successful completion of sast job
+    needs: sast
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
-    - name: Set up Kubectl
-      uses: azure/setup-kubectl@v1
+      - name: Load EKS credentials
+        run: aws eks update-kubeconfig --name brokencrystals --region us-east-2
 
-    - name: Load AWS EKS credentials
-      run: aws eks update-kubeconfig --name brokencrystalss --region us-east-2 # Change to your cluster name & region
+      - name: Update Deployment Image
+        run: |
+          sed -i "s/VERSION_TAG/${{ github.sha }}/g" k8s/app.yaml
 
-    - name: Update Deployment Image
-      run: |
-        sed -i "s/VERSION_TAG/${{ github.sha }}/g" k8s/app.yaml
+      - name: Deploy to EKS
+        run: kubectl apply -f k8s/app.yaml --validate=false
 
-    - name: Deploy to EKS
-      run: kubectl apply -f k8s/app.yaml --validate=false # Path to your Kubernetes application manifest file/s
-
-    - name: Verify deployment and check application health
-      id: verify_deployment
-      run: |          
-        kubectl rollout status deployment/nodejs-deployment --timeout=5m || { echo 'Deployment Verification failed'; exit 1; }
-
-        kubectl wait --for=condition=ready pod -l app=nodejs --timeout=5m || { echo 'Pod readiness check failed'; exit 1; }
-
-        # Fetch the application URL from the ingress or service
-        appurl=$(kubectl get svc nodejs-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-        echo "Application URL is: $appurl"
-
-        # Set the appurl variable as output
-        echo "URL=$appurl" >> $GITHUB_OUTPUT
-      
+      - name: Verify deployment
+        id: verify_deployment
+        run: |
+          kubectl rollout status deployment/nodejs-deployment --timeout=5m
+          appurl=$(kubectl get svc nodejs-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "URL=$appurl" >> $GITHUB_OUTPUT
 
   dast:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.devsecops_action == 'dast' }}
-    # needs: deploy
+    needs: deploy
     env:
-    URL: ${{ needs.deploy.outputs.URL }}
+      URL: ${{ needs.deploy.outputs.URL }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-    - name: Check out repository
-      uses: actions/checkout@v3
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-    - name: Echo URL
-      run: |
-        echo $URL
-      
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v2
+      - name: Run OWASP ZAP DAST Scan
+        continue-on-error: true
+        run: |
+          mkdir -p zap-output
+          chmod 777 -R zap-output/
+          [[ ! "$URL" =~ ^http[s]?:// ]] && URL="http://$URL"
+          docker run --rm -v "$(pwd)/zap-output:/zap/wrk" zaproxy/zap-stable zap-baseline.py -t "$URL" -r zap-report.html || true
 
-    - name: Run OWASP ZAP DAST Scan
-      continue-on-error: true
-      run: |
-        # Create a directory to ensure permissions are correct
-        mkdir -p zap-output
-
-        # Set directory permissions
-        chmod 777 -R zap-output/
-        
-        # Normalize URL to start with "http://" if not specified, replacing any existing protocol
-        if [[ ! "$URL" =~ ^http[s]?:// ]]; then
-          URL="http://$URL"
-        fi
-        echo "Normalized URL: $URL"
-
-        echo "Running OWASP ZAP scan on URL: $URL"
-
-        docker run --rm -v "$(pwd)/zap-output:/zap/wrk" zaproxy/zap-stable zap-baseline.py \
-        -t "$URL" \
-        -r zap-report.html || true
-
-    - name: List output directory contents
-      run: |
-        echo "Checking contents of zap-output directory..."
-        ls -la zap-output/
-
-    - name: Check ZAP container logs
-      run: |
-        docker logs $(docker ps -lq) || true
-      
-    - name: Display ZAP Report 
-      if: ${{ always() }}
-      run: |
-        if [ -f zap-output/zap-report.html ]; then
-          echo "ZAP report generated successfully. Displaying a preview:"
-          cat zap-output/zap-report.html | head -n 50
-        else
-          echo "ZAP report not generated."
-        fi
-
-    - name: Upload ZAP Report (Optional)
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: zap-report
-        path: zap-output/*.html
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-output/*.html
