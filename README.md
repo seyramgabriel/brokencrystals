@@ -422,7 +422,7 @@ You can use the output loadbalancer dns to access the application via a web brow
 ![Screenshot (137)](https://github.com/user-attachments/assets/e87fe87e-fee9-4271-b9e5-801f8c87cfdb)
 
 
-**_Note that, because the sast job tags the pushed images with github.sha, the deploy job should only be triggered straighaway if there is no commit to the repository after the sast job has been ran Otherwise, always trigger the sast job before the deploy job._**
+**_Note that, because the sast job tags the pushed images with github.sha of current commit, the deploy job should not be triggered if there is a commit to the repository on main (stable) branch after the sast job runs. Otherwise, the deploy job would not be able to access an an image with the current commit's sha from dockerhub to deploy._**
 
 Navigate to the AWS Console to view the deployment and Load balancer URL in your EKS Cluster:
 
@@ -444,8 +444,47 @@ After downloading, unzip the report to view the full report.
 ![Screenshot (145)](https://github.com/user-attachments/assets/b99af2e7-8a3e-486a-8b05-d49ca621fa0d)
 
 
+## Cleanup
+To delete the resources and prevent unnecessary charges, run the following commands:
+
+1. Delete the application:
+
+```
+kubectl delete -f k8s/app.yaml
+
+
+2. Delete the secret provider:
+
+```
+kubectl delete -f k8s/brokencrystals-secret-provider.yaml
+```
+
+**3.** Delete the Service Account:
+
+```
+eksctl delete iamserviceaccount \
+  --name brokencrystals-service-account \
+  --cluster "$CLUSTERNAME" \
+  --region "$REGION"
+```
+
+4. Delete the IAM policy:
+
+```
+aws iam delete-policy --policy-arn "$POLICY_ARN"
+```
+Replace $POLICY_ARN with the actual policy_arn of the policy you created - "brokencrystals-iam-policy"
+
+5. Delete the cluster:
+
+```
+eksctl delete cluster -f cluster.yml
+```
+
 
 # Conclusion
+
+This document guides you through deploying the BrokenCrystals application on EKS using AWS Secrets Manager for secure secret handling after a Static Application Security Testing on SonarQube. Follow the steps carefully and refer to screenshots for additional clarity.
 
 This is an insightful project recommended for every student and DevSecOps enthusiast.
 

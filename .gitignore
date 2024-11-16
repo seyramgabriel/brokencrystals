@@ -37,3 +37,7 @@ keycloak/db
 
 
 documentation.txt
+
+zap-report.zip
+
+.gitignore
