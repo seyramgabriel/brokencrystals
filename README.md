@@ -422,7 +422,7 @@ You can use the output loadbalancer dns to access the application via a web brow
 ![Screenshot (137)](https://github.com/user-attachments/assets/e87fe87e-fee9-4271-b9e5-801f8c87cfdb)
 
 
-**_Note that, because the sast job tags the pushed images with github.sha of current commit, the deploy job should not be triggered if there is a commit to the repository on main (stable) branch after the sast job runs. Otherwise, the deploy job would not be able to access an an image with the current commit's sha from dockerhub to deploy._**
+**_Note that, because the sast job tags the pushed images with github.sha of current commit, the deploy job should not be triggered if there is a commit to the repository on main (stable) branch after the sast job runs. Otherwise, the deploy job would not be able to access an image with the current commit's sha from dockerhub to deploy._**
 
 Navigate to the AWS Console to view the deployment and Load balancer URL in your EKS Cluster:
 
@@ -447,13 +447,13 @@ After downloading, unzip the report to view the full report.
 ## Cleanup
 To delete the resources and prevent unnecessary charges, run the following commands:
 
-1. Delete the application:
+**1.** Delete the application:
 
 ```
 kubectl delete -f k8s/app.yaml
+```
 
-
-2. Delete the secret provider:
+**2.** Delete the secret provider:
 
 ```
 kubectl delete -f k8s/brokencrystals-secret-provider.yaml
@@ -468,14 +468,14 @@ eksctl delete iamserviceaccount \
   --region "$REGION"
 ```
 
-4. Delete the IAM policy:
+**4.** Delete the IAM policy:
 
 ```
 aws iam delete-policy --policy-arn "$POLICY_ARN"
 ```
 Replace $POLICY_ARN with the actual policy_arn of the policy you created - "brokencrystals-iam-policy"
 
-5. Delete the cluster:
+**5.** Delete the cluster:
 
 ```
 eksctl delete cluster -f cluster.yml
