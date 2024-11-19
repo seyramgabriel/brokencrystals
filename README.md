@@ -468,6 +468,8 @@ eksctl delete iamserviceaccount \
   --region "$REGION"
 ```
 
+Replace $CLUSTERNAME AND $REGION with actual clustername and region
+
 **4.** Delete the IAM policy:
 
 ```
